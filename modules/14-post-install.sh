@@ -84,6 +84,36 @@ chown -R $USERNAME:$USERNAME /mnt/home/$USERNAME/.config
 
 print_success "Default applications configured"
 
+# Configure shell aliases
+print_info "Configuring shell aliases..."
+
+# Add cls alias to bashrc
+cat >> /mnt/home/$USERNAME/.bashrc << 'EOF'
+
+# ElysiumArch Custom Aliases
+alias cls='clear'
+alias update='yay -Syu'
+alias cleanup='yay -Sc && yay -Yc'
+alias sysinfo='fastfetch'
+EOF
+
+# Add cls alias to zshrc if zsh is installed
+if arch-chroot /mnt pacman -Qi zsh &>/dev/null; then
+    cat >> /mnt/home/$USERNAME/.zshrc << 'EOF'
+
+# ElysiumArch Custom Aliases
+alias cls='clear'
+alias update='yay -Syu'
+alias cleanup='yay -Sc && yay -Yc'
+alias sysinfo='fastfetch'
+EOF
+fi
+
+chown $USERNAME:$USERNAME /mnt/home/$USERNAME/.bashrc
+[[ -f /mnt/home/$USERNAME/.zshrc ]] && chown $USERNAME:$USERNAME /mnt/home/$USERNAME/.zshrc
+
+print_success "Shell aliases configured (cls, update, cleanup, sysinfo)"
+
 # Clean package cache
 print_info "Cleaning package cache..."
 arch-chroot /mnt pacman -Sc --noconfirm
