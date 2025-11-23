@@ -46,11 +46,14 @@ arch-chroot /mnt pacman -S --noconfirm --needed \
 
 print_success "System monitors installed"
 
-# Install nvtop for NVIDIA
-print_info "Installing nvtop (NVIDIA GPU monitor)..."
-arch-chroot /mnt pacman -S --noconfirm --needed nvtop
-
-print_success "nvtop installed"
+# Install nvtop for NVIDIA (skip in VM or if no NVIDIA GPU)
+if ! systemd-detect-virt --quiet && lspci | grep -i nvidia &>/dev/null; then
+    print_info "Installing nvtop (NVIDIA GPU monitor)..."
+    arch-chroot /mnt pacman -S --noconfirm --needed nvtop 2>/dev/null || print_warning "nvtop installation failed (optional)"
+    print_success "nvtop installed"
+else
+    print_info "Skipping nvtop (not needed in VM or without NVIDIA GPU)"
+fi
 
 # Install archive tools
 print_info "Installing archive tools..."

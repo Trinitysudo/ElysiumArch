@@ -8,11 +8,16 @@ print_info "Installing user applications..."
 
 # Install Steam and gaming support
 print_info "Installing Steam and gaming support..."
-arch-chroot /mnt pacman -S --noconfirm --needed \
-    steam \
-    lib32-nvidia-utils \
-    vulkan-icd-loader \
-    lib32-vulkan-icd-loader
+
+# Base Steam packages
+STEAM_PACKAGES="steam vulkan-icd-loader lib32-vulkan-icd-loader"
+
+# Add NVIDIA 32-bit libs if NVIDIA GPU is present and not in VM
+if ! systemd-detect-virt --quiet && lspci | grep -i nvidia &>/dev/null; then
+    STEAM_PACKAGES="$STEAM_PACKAGES lib32-nvidia-utils"
+fi
+
+arch-chroot /mnt pacman -S --noconfirm --needed $STEAM_PACKAGES
 
 print_success "Steam installed"
 

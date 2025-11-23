@@ -4,6 +4,23 @@
 # Install and configure NVIDIA proprietary drivers for RTX 3060
 #
 
+# Detect if running in VM
+if systemd-detect-virt --quiet; then
+    VIRT_TYPE=$(systemd-detect-virt)
+    print_warning "Virtual machine detected: $VIRT_TYPE"
+    print_info "Skipping NVIDIA driver installation (not needed in VM)"
+    log_info "NVIDIA: Skipped - running in $VIRT_TYPE"
+    exit 0
+fi
+
+# Check if NVIDIA GPU is present
+if ! lspci | grep -i nvidia &>/dev/null; then
+    print_warning "No NVIDIA GPU detected"
+    print_info "Skipping NVIDIA driver installation"
+    log_info "NVIDIA: Skipped - no NVIDIA GPU found"
+    exit 0
+fi
+
 print_info "Installing NVIDIA drivers for RTX 3060..."
 
 # Enable multilib repository for 32-bit support
