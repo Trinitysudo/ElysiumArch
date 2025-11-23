@@ -18,11 +18,11 @@ arch-chroot /mnt chown -R $USERNAME:$USERNAME /home/$USERNAME/aur-build
 
 # Clone yay repository
 print_info "Cloning yay repository..."
-arch-chroot /mnt runuser -u $USERNAME -- bash -c "cd /home/$USERNAME/aur-build && git clone https://aur.archlinux.org/yay.git"
+arch-chroot /mnt runuser -u $USERNAME -- git clone https://aur.archlinux.org/yay.git /home/$USERNAME/aur-build/yay
 
 # Build yay package as user
 print_info "Building yay package..."
-arch-chroot /mnt runuser -u $USERNAME -- bash -c "cd /home/$USERNAME/aur-build/yay && makepkg -s --noconfirm --needed"
+arch-chroot /mnt bash -c "cd /home/$USERNAME/aur-build/yay && runuser -u $USERNAME makepkg -s --noconfirm --needed"
 
 YAY_BUILD_EXIT=$?
 
@@ -74,11 +74,11 @@ arch-chroot /mnt chown -R $USERNAME:$USERNAME /home/$USERNAME/aur-build
 
 # Clone paru repository
 print_info "Cloning paru repository..."
-arch-chroot /mnt runuser -u $USERNAME -- bash -c "cd /home/$USERNAME/aur-build && git clone https://aur.archlinux.org/paru.git"
+arch-chroot /mnt runuser -u $USERNAME -- git clone https://aur.archlinux.org/paru.git /home/$USERNAME/aur-build/paru
 
 # Build paru package as user
 print_info "Building paru package..."
-arch-chroot /mnt runuser -u $USERNAME -- bash -c "cd /home/$USERNAME/aur-build/paru && makepkg -s --noconfirm --needed"
+arch-chroot /mnt bash -c "cd /home/$USERNAME/aur-build/paru && runuser -u $USERNAME makepkg -s --noconfirm --needed"
 
 PARU_BUILD_EXIT=$?
 
