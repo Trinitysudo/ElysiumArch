@@ -6,9 +6,26 @@
 
 print_info "Installing GRUB bootloader..."
 
-# Install GRUB for UEFI
+# Verify EFI partition is mounted
+if ! mountpoint -q /mnt/boot/efi; then
+    print_error "EFI partition not mounted at /mnt/boot/efi"
+    print_info "Current mounts:"
+    mount | grep /mnt
+    log_error "Bootloader: EFI partition not mounted"
+    exit 1
+fi
+
+# Install efibootmgr if not already installed
+arch-chroot /mnt pacman -S --noconfirm --needed efibootmgr
+
+# Install GRUB for UEFI (with fallback for BIOS)
 print_info "Installing GRUB to EFI partition..."
-arch-chroot /mnt grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=ElysiumArch
+if [[ -d /sys/firmware/efi ]]; then
+    arch-chroot /mnt grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=ElysiumArch --recheck
+else
+    print_warning "UEFI not detected, installing for BIOS..."
+    arch-chroot /mnt grub-install --target=i386-pc "$INSTALL_DISK"
+fi
 
 if [[ $? -ne 0 ]]; then
     print_error "Failed to install GRUB"

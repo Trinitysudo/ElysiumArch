@@ -67,8 +67,12 @@ echo "LANG=$LOCALE" > /mnt/etc/locale.conf
 print_success "Locale configured"
 
 # Set keyboard layout
-echo "KEYMAP=$KEYMAP" > /mnt/etc/vconsole.conf
-print_success "Keyboard layout configured"
+if [[ -n "$KEYMAP" ]]; then
+    echo "KEYMAP=$KEYMAP" > /mnt/etc/vconsole.conf
+    print_success "Keyboard layout configured: $KEYMAP"
+else
+    print_warning "KEYMAP not set, skipping vconsole.conf"
+fi
 
 # Set hostname
 echo "$HOSTNAME" > /mnt/etc/hostname
