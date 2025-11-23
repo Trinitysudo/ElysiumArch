@@ -257,16 +257,12 @@ get_user_configuration() {
     
     # User password
     while true; do
-        read -sp "$(print_info "Enter password for $USERNAME: ")" USER_PASSWORD
+        read -sp "$(print_info "Enter password for $USERNAME (any length): ")" USER_PASSWORD
         echo ""
         read -sp "$(print_info "Confirm password: ")" USER_PASSWORD2
         echo ""
         if [[ "$USER_PASSWORD" == "$USER_PASSWORD2" ]]; then
-            if [[ ${#USER_PASSWORD} -ge 6 ]]; then
-                break
-            else
-                print_error "Password must be at least 6 characters."
-            fi
+            break
         else
             print_error "Passwords do not match. Try again."
         fi
@@ -274,16 +270,12 @@ get_user_configuration() {
     
     # Root password
     while true; do
-        read -sp "$(print_info "Enter root password: ")" ROOT_PASSWORD
+        read -sp "$(print_info "Enter root password (any length): ")" ROOT_PASSWORD
         echo ""
         read -sp "$(print_info "Confirm root password: ")" ROOT_PASSWORD2
         echo ""
         if [[ "$ROOT_PASSWORD" == "$ROOT_PASSWORD2" ]]; then
-            if [[ ${#ROOT_PASSWORD} -ge 6 ]]; then
-                break
-            else
-                print_error "Password must be at least 6 characters."
-            fi
+            break
         else
             print_error "Passwords do not match. Try again."
         fi

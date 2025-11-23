@@ -18,7 +18,7 @@ fi
 if [[ -z "$USERNAME" ]]; then
     print_warning "User configuration not found. Please enter details:"
     read -p "Username: " USERNAME
-    read -sp "Password: " USER_PASSWORD
+    read -sp "Password (any length): " USER_PASSWORD
     echo ""
     # Save for other modules
     mkdir -p /tmp/elysium-config
