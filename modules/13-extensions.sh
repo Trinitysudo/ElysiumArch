@@ -78,11 +78,14 @@ gsettings set org.gnome.shell.extensions.dash-to-dock show-running true
 gsettings set org.gnome.shell.extensions.dash-to-dock show-favorites false
 gsettings set org.gnome.shell.extensions.dash-to-dock isolate-workspaces false
 
-# Solid dark gray background
+# Blue theme with transparency
 gsettings set org.gnome.shell.extensions.dash-to-dock transparency-mode 'FIXED'
-gsettings set org.gnome.shell.extensions.dash-to-dock background-opacity 0.85
+gsettings set org.gnome.shell.extensions.dash-to-dock background-opacity 0.75
 gsettings set org.gnome.shell.extensions.dash-to-dock custom-background-color true
-gsettings set org.gnome.shell.extensions.dash-to-dock background-color '#2e3436'
+gsettings set org.gnome.shell.extensions.dash-to-dock background-color '#1e3a5f'
+
+# Blue accent color for entire system
+gsettings set org.gnome.desktop.interface accent-color 'blue'
 
 # Dock appearance
 gsettings set org.gnome.shell.extensions.dash-to-dock apply-custom-theme false

@@ -222,11 +222,21 @@ arch-chroot /mnt pacman -S --noconfirm --needed \
     curl
 
 # Install Homebrew as user
-arch-chroot /mnt su - $USERNAME -c '
-NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-echo '\''eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"'\'' >> ~/.bashrc
-echo '\''eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"'\'' >> ~/.zshrc
-'
+print_info "Installing Homebrew (this may take a few minutes)..."
+arch-chroot /mnt sudo -u $USERNAME bash << 'HOMEBREW_EOF'
+export NONINTERACTIVE=1
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Add brew to shell config
+if [ -d "/home/linuxbrew/.linuxbrew" ]; then
+    echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ~/.bashrc
+    echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ~/.zshrc
+    echo "Homebrew installed successfully"
+else
+    echo "Homebrew installation may have failed"
+    exit 1
+fi
+HOMEBREW_EOF
 
 if [[ $? -eq 0 ]]; then
     print_success "Homebrew installed"

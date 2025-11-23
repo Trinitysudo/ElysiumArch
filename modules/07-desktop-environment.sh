@@ -20,13 +20,27 @@ arch-chroot /mnt pacman -S --noconfirm --needed \
 print_success "Display servers installed"
 log_success "Desktop: Display servers installed"
 
-# Install GNOME
-print_info "Installing GNOME desktop environment (this may take 15-20 minutes)..."
+# Install GNOME (minimal - NO bloat)
+print_info "Installing GNOME desktop environment (minimal, no bloat)..."
 arch-chroot /mnt pacman -S --noconfirm --needed \
-    gnome \
-    gnome-extra \
+    gnome-shell \
+    gnome-control-center \
+    gnome-terminal \
     gnome-tweaks \
-    dconf-editor
+    gnome-keyring \
+    gnome-backgrounds \
+    gnome-session \
+    gnome-settings-daemon \
+    gnome-menus \
+    dconf-editor \
+    nautilus \
+    gnome-calculator \
+    gnome-system-monitor \
+    gnome-disk-utility \
+    gnome-screenshot \
+    eog \
+    evince \
+    gedit
 
 if [[ $? -ne 0 ]]; then
     print_error "Failed to install GNOME"
@@ -34,8 +48,10 @@ if [[ $? -ne 0 ]]; then
     exit 1
 fi
 
-print_success "GNOME installed"
-log_success "Desktop: GNOME desktop installed"
+print_success "GNOME installed (bloat removed)"
+log_success "Desktop: GNOME desktop installed (minimal)"
+
+print_info "Removed bloat: games, cheese, contacts, maps, weather, music, etc."
 
 # Install GDM (display manager)
 print_info "Installing GDM display manager..."
@@ -64,10 +80,9 @@ arch-chroot /mnt pacman -S --noconfirm --needed \
 
 print_success "Bluetooth installed"
 
-# Install file management
+# Install file management (nautilus already installed above)
 print_info "Installing file management tools..."
 arch-chroot /mnt pacman -S --noconfirm --needed \
-    nautilus \
     file-roller \
     gvfs \
     gvfs-mtp \
@@ -84,9 +99,9 @@ arch-chroot /mnt pacman -S --noconfirm --needed \
     noto-fonts \
     noto-fonts-emoji \
     ttf-roboto \
-    ttf-ubuntu-font-family
+    ttf-jetbrains-mono-nerd
 
-print_success "Fonts installed"
+print_success "Fonts installed (including JetBrains Mono Nerd Font)"
 
 # Install printing support
 print_info "Installing printing support..."
@@ -96,8 +111,7 @@ arch-chroot /mnt pacman -S --noconfirm --needed \
 
 print_success "Printing support installed"
 
-# Install screenshot tools
-arch-chroot /mnt pacman -S --noconfirm --needed gnome-screenshot
+# Screenshot tool already installed above
 
 # Enable services
 print_info "Enabling desktop services..."

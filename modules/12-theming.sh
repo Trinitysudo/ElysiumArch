@@ -1,24 +1,24 @@
 #!/usr/bin/env bash
 #
-# Module 12: Theming - Dark Mode + macOS Icons
-# Minimal theming: just dark mode and macOS-style icons
+# Module 12: Theming - Dark Mode + Darksurf Icons
+# Minimal theming: dark mode with Darksurf icons only
 #
 
-print_info "Applying dark theme with macOS icons..."
+print_info "Applying dark theme with Darksurf icons..."
 
-# Install WhiteSur icon theme (macOS-style)
-print_info "Installing WhiteSur macOS icon theme..."
-arch-chroot /mnt sudo -u $USERNAME bash -c "yay -S --noconfirm whitesur-icon-theme"
+# Install Darksurf icon theme (minimal, beautiful dark icons)
+print_info "Installing Darksurf icon theme..."
+arch-chroot /mnt sudo -u $USERNAME bash -c "yay -S --noconfirm darksurf-icon-theme"
 
 if [[ $? -ne 0 ]]; then
-    print_warning "WhiteSur failed, trying McMojave icons..."
-    arch-chroot /mnt sudo -u $USERNAME bash -c "yay -S --noconfirm mcmojave-circle-icon-theme-git"
+    print_error "Darksurf installation failed!"
+    exit 1
 fi
 
-print_success "macOS icon theme installed"
+print_success "Darksurf icon theme installed"
 
-# Apply GNOME dark theme
-print_info "Configuring dark theme..."
+# Apply GNOME dark theme with blue accent
+print_info "Configuring dark theme with blue accent..."
 mkdir -p /mnt/home/$USERNAME/.local/bin
 cat > /mnt/home/$USERNAME/.local/bin/gnome-theme.sh << 'THEME_EOF'
 #!/bin/bash
@@ -26,8 +26,11 @@ cat > /mnt/home/$USERNAME/.local/bin/gnome-theme.sh << 'THEME_EOF'
 gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
 gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita-dark'
 
-# Set macOS-style icons
-gsettings set org.gnome.desktop.interface icon-theme 'WhiteSur-dark'
+# Set Darksurf icons
+gsettings set org.gnome.desktop.interface icon-theme 'Darksurf'
+
+# Set blue accent color
+gsettings set org.gnome.desktop.interface accent-color 'blue'
 
 # Remove autostart after first run
 rm -f ~/.config/autostart/elysium-theme.desktop
