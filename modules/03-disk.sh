@@ -28,7 +28,7 @@ if [[ ${#DISKS[@]} -eq 1 ]]; then
     lsblk "$DISK"
     set +e  # Disable exit on error for confirm
     confirm "Use this disk for installation?"
-    local confirm_result=$?
+    confirm_result=$?
     set -e  # Re-enable exit on error
     if [[ $confirm_result -ne 0 ]]; then
         print_error "Installation cancelled"
@@ -110,7 +110,7 @@ echo ""
 
 set +e  # Disable exit on error for confirm
 confirm "Proceed with installation?"
-local confirm_result=$?
+confirm_result=$?
 set -e  # Re-enable exit on error
 if [[ $confirm_result -ne 0 ]]; then
     print_error "Installation cancelled by user"
