@@ -9,6 +9,29 @@ print_info "Installing AUR helpers and package managers..."
 # Install required build tooling
 arch-chroot /mnt pacman -S --noconfirm --needed base-devel git util-linux sudo
 
+# Verify user exists
+print_info "Verifying user account: $USERNAME"
+if ! arch-chroot /mnt id "$USERNAME" &>/dev/null; then
+    print_error "User $USERNAME does not exist!"
+    print_error "Module 04 (base-system) must have failed or /mnt is not mounted correctly."
+    print_info "Checking /mnt mount..."
+    if ! mountpoint -q /mnt; then
+        print_error "/mnt is not mounted! Cannot proceed."
+        print_info "Run: mount /dev/sdXY /mnt (replace XY with your root partition)"
+        exit 1
+    fi
+    print_info "Attempting to create user $USERNAME..."
+    if [[ -z "$USER_PASSWORD" ]]; then
+        print_error "USER_PASSWORD not set in config. Cannot create user."
+        exit 1
+    fi
+    arch-chroot /mnt useradd -m -G wheel,audio,video,storage,optical -s /bin/bash "$USERNAME"
+    echo "$USERNAME:$USER_PASSWORD" | arch-chroot /mnt chpasswd
+    print_success "User $USERNAME created"
+else
+    print_success "User $USERNAME exists (UID: $(arch-chroot /mnt id -u "$USERNAME"))"
+fi
+
 # Ensure sudoers is configured with NOPASSWD for wheel group
 print_info "Verifying sudo configuration..."
 if ! grep -q "^%wheel ALL=(ALL:ALL) NOPASSWD: ALL" /mnt/etc/sudoers; then
@@ -18,12 +41,15 @@ if ! grep -q "^%wheel ALL=(ALL:ALL) NOPASSWD: ALL" /mnt/etc/sudoers; then
 fi
 
 # Test sudo works
+print_info "Testing sudo -u $USERNAME..."
 if ! arch-chroot /mnt sudo -u "$USERNAME" whoami &>/dev/null; then
-    print_error "sudo -u $USERNAME is not working - check user creation and sudoers"
+    print_error "sudo -u $USERNAME is not working"
     print_info "Sudoers wheel lines:"
     grep wheel /mnt/etc/sudoers || true
-    print_info "User info:"
-    arch-chroot /mnt id "$USERNAME" || true
+    print_info "User groups:"
+    arch-chroot /mnt groups "$USERNAME" || true
+    print_info "Testing direct command..."
+    arch-chroot /mnt su - "$USERNAME" -c "whoami" || true
     exit 1
 fi
 print_success "sudo configured and working"
