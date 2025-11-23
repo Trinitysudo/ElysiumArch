@@ -193,6 +193,41 @@ print_success "Installation report generated"
 
 # Copy installation log
 cp "$LOG_FILE" /mnt/var/log/elysium-install.log
+cp "$LOG_FILE" /mnt/home/$USERNAME/elysium-install.log
+chown $USERNAME:$USERNAME /mnt/home/$USERNAME/elysium-install.log
+
+# Setup first-boot report
+print_info "Setting up first-boot report system..."
+
+# Copy the report script
+mkdir -p /mnt/home/$USERNAME/.local/bin
+cp "${SCRIPT_DIR}/scripts/first-boot-report.sh" /mnt/home/$USERNAME/.local/bin/elysium-report.sh
+chmod +x /mnt/home/$USERNAME/.local/bin/elysium-report.sh
+
+# Create autostart entry for first boot report
+mkdir -p /mnt/home/$USERNAME/.config/autostart
+cat > /mnt/home/$USERNAME/.config/autostart/elysium-first-boot-report.desktop << 'EOF'
+[Desktop Entry]
+Type=Application
+Name=ElysiumArch Installation Report
+Comment=Shows installation summary and system status
+Exec=kitty -e /home/$USERNAME/.local/bin/elysium-report.sh
+Icon=dialog-information
+Terminal=true
+Categories=System;
+X-GNOME-Autostart-enabled=true
+X-GNOME-Autostart-Delay=3
+EOF
+
+# Replace $USERNAME in desktop file
+sed -i "s/\$USERNAME/$USERNAME/g" /mnt/home/$USERNAME/.config/autostart/elysium-first-boot-report.desktop
+
+# Set ownership
+chown -R $USERNAME:$USERNAME /mnt/home/$USERNAME/.local
+chown -R $USERNAME:$USERNAME /mnt/home/$USERNAME/.config/autostart
+
+print_success "First-boot report configured"
+log_success "Post-Install: First-boot report system configured"
 
 print_success "Post-installation configuration complete"
 log_success "Post-Install: All configurations applied"

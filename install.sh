@@ -72,7 +72,7 @@ main() {
     
     # Phase 3: Graphics & Desktop Environment
     print_phase "PHASE 3: GRAPHICS & DESKTOP ENVIRONMENT"
-    source "${SCRIPT_DIR}/modules/06-nvidia-drivers.sh"
+    source "${SCRIPT_DIR}/modules/06-gpu-drivers.sh"
     source "${SCRIPT_DIR}/modules/07-desktop-environment.sh"
     
     # Phase 4: Package Managers
@@ -222,11 +222,19 @@ display_summary() {
     print_info "✓ Base system installed and configured"
     print_info "✓ GNOME desktop environment installed"
     
-    # Check if NVIDIA was installed
-    if ! systemd-detect-virt --quiet && lspci 2>/dev/null | grep -i nvidia &>/dev/null; then
-        print_info "✓ NVIDIA drivers installed"
+    # Check GPU drivers installed
+    if ! systemd-detect-virt --quiet; then
+        if lspci 2>/dev/null | grep -i nvidia &>/dev/null; then
+            print_info "✓ NVIDIA GPU drivers installed"
+        elif lspci 2>/dev/null | grep -i amd | grep -i vga &>/dev/null; then
+            print_info "✓ AMD GPU drivers installed"
+        elif lspci 2>/dev/null | grep -i intel | grep -i vga &>/dev/null; then
+            print_info "✓ Intel GPU drivers installed"
+        else
+            print_info "✓ Graphics drivers configured"
+        fi
     else
-        print_info "✓ Graphics drivers configured"
+        print_info "✓ VM graphics drivers configured"
     fi
     
     print_info "✓ Development tools installed:"

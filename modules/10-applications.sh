@@ -12,14 +12,24 @@ print_info "Installing Steam and gaming support..."
 # Base Steam packages
 STEAM_PACKAGES="steam vulkan-icd-loader lib32-vulkan-icd-loader"
 
-# Add NVIDIA 32-bit libs if NVIDIA GPU is present and not in VM
-if ! systemd-detect-virt --quiet && lspci | grep -i nvidia &>/dev/null; then
-    STEAM_PACKAGES="$STEAM_PACKAGES lib32-nvidia-utils"
+# Add GPU-specific 32-bit libs if not in VM
+if ! systemd-detect-virt --quiet; then
+    if lspci | grep -i nvidia &>/dev/null; then
+        print_info "Adding NVIDIA 32-bit libraries for gaming..."
+        STEAM_PACKAGES="$STEAM_PACKAGES lib32-nvidia-utils"
+    elif lspci | grep -i amd &>/dev/null; then
+        print_info "Adding AMD 32-bit libraries for gaming..."
+        STEAM_PACKAGES="$STEAM_PACKAGES lib32-vulkan-radeon lib32-libva-mesa-driver lib32-mesa-vdpau"
+    elif lspci | grep -i intel &>/dev/null; then
+        print_info "Adding Intel 32-bit libraries for gaming..."
+        STEAM_PACKAGES="$STEAM_PACKAGES lib32-vulkan-intel lib32-libva-intel-driver"
+    fi
 fi
 
 arch-chroot /mnt pacman -S --noconfirm --needed $STEAM_PACKAGES
 
-print_success "Steam installed"
+print_success "Steam installed with GPU-specific libraries"
+echo "STEAM_SUCCESS" >> /mnt/tmp/install_status
 
 # Install OBS Studio
 print_info "Installing OBS Studio..."
