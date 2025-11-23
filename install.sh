@@ -18,14 +18,15 @@ LOG_FILE="${SCRIPT_DIR}/logs/install.log"
 mkdir -p "${SCRIPT_DIR}/logs"
 exec > >(tee -a "$LOG_FILE") 2>&1
 
-# Initialize debug log
-echo "=========================================" > /tmp/elysium-debug.log
-echo "ElysiumArch Debug Log" >> /tmp/elysium-debug.log
-echo "Started: $(date)" >> /tmp/elysium-debug.log
-echo "=========================================" >> /tmp/elysium-debug.log
+# Initialize debug log - output to both file and screen
+DEBUG_LOG="/tmp/elysium-debug.log"
+echo "=========================================" | tee "$DEBUG_LOG"
+echo "ElysiumArch Debug Log" | tee -a "$DEBUG_LOG"
+echo "Started: $(date)" | tee -a "$DEBUG_LOG"
+echo "=========================================" | tee -a "$DEBUG_LOG"
 
 # Trap to catch unexpected exits
-trap 'echo "[TRAP] Script exited at line $LINENO with exit code $?" >> /tmp/elysium-debug.log' ERR
+trap 'echo "[TRAP] Script exited at line $LINENO with exit code $?" | tee -a "$DEBUG_LOG"' ERR
 
 # Source helper scripts
 source "${SCRIPT_DIR}/scripts/helpers.sh"
@@ -46,13 +47,13 @@ main() {
     check_system_requirements
     
     # Confirm installation
-    echo "[DEBUG] About to call confirm_installation()" >> /tmp/elysium-debug.log
+    echo "[DEBUG] About to call confirm_installation()" | tee -a "$DEBUG_LOG"
     if ! confirm_installation; then
-        echo "[ERROR] User cancelled installation at main prompt, exiting" >> /tmp/elysium-debug.log
+        echo "[ERROR] User cancelled installation at main prompt, exiting" | tee -a "$DEBUG_LOG"
         log_error "Installation cancelled by user"
         exit 0
     fi
-    echo "[DEBUG] User confirmed installation, starting Phase 1" >> /tmp/elysium-debug.log
+    echo "[DEBUG] User confirmed installation, starting Phase 1" | tee -a "$DEBUG_LOG"
     
     # Phase 1: Pre-Installation (Network, Localization, Disk)
     print_phase "PHASE 1: PRE-INSTALLATION"

@@ -26,13 +26,13 @@ if [[ ${#DISKS[@]} -eq 1 ]]; then
     DISK="/dev/${DISKS[0]}"
     print_info "Only one disk detected: $DISK"
     lsblk "$DISK"
-    echo "[DEBUG] About to call confirm for disk selection" >> /tmp/elysium-debug.log
+    echo "[DEBUG] About to call confirm for disk selection" | tee -a /tmp/elysium-debug.log
     if ! confirm "Use this disk for installation?"; then
-        echo "[ERROR] User cancelled disk selection, exiting script" >> /tmp/elysium-debug.log
+        echo "[ERROR] User cancelled disk selection, exiting script" | tee -a /tmp/elysium-debug.log
         print_error "Installation cancelled"
         exit 0
     fi
-    echo "[DEBUG] User confirmed disk selection, continuing" >> /tmp/elysium-debug.log
+    echo "[DEBUG] User confirmed disk selection, continuing" | tee -a /tmp/elysium-debug.log
 else
     # Multiple disks, let user choose
     print_info "Select installation disk:"
@@ -107,19 +107,18 @@ print_warning "Scheme: $([ "$USE_SWAP" = true ] && echo "EFI + Swap + Root" || e
 print_warning "ALL data will be permanently deleted!"
 echo ""
 
-echo "[DEBUG] About to call final confirmation before wiping disk" >> /tmp/elysium-debug.log
+echo "[DEBUG] About to call final confirmation before wiping disk" | tee -a /tmp/elysium-debug.log
 confirm "Proceed with installation?"
 CONFIRM_EXIT_CODE=$?
-echo "[DEBUG] confirm() returned with exit code: $CONFIRM_EXIT_CODE" >> /tmp/elysium-debug.log
+echo "[DEBUG] confirm() returned with exit code: $CONFIRM_EXIT_CODE" | tee -a /tmp/elysium-debug.log
 
 if [[ $CONFIRM_EXIT_CODE -ne 0 ]]; then
-    echo "[ERROR] User cancelled final confirmation (exit code: $CONFIRM_EXIT_CODE), exiting script" >> /tmp/elysium-debug.log
+    echo "[ERROR] User cancelled final confirmation (exit code: $CONFIRM_EXIT_CODE), exiting script" | tee -a /tmp/elysium-debug.log
     print_error "Installation cancelled by user"
     log_error "Disk: User cancelled installation"
-    cat /tmp/elysium-debug.log
     exit 0
 fi
-echo "[DEBUG] User confirmed final confirmation, proceeding with disk wipe" >> /tmp/elysium-debug.log
+echo "[DEBUG] User confirmed final confirmation, proceeding with disk wipe" | tee -a /tmp/elysium-debug.log
 
 # Export disk variable
 export INSTALL_DISK="$DISK"

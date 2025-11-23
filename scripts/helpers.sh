@@ -41,29 +41,29 @@ confirm() {
     local prompt="$1"
     local response
     
-    echo "[DEBUG] confirm() called with: '$prompt'" >> /tmp/elysium-debug.log
+    echo "[DEBUG] confirm() called with: '$prompt'" | tee -a /tmp/elysium-debug.log
     
     while true; do
         read -p "$(echo -e ${YELLOW}[?]${NC}) $prompt [y/N]: " response
-        echo "[DEBUG] User response: '$response'" >> /tmp/elysium-debug.log
+        echo "[DEBUG] User response: '$response'" | tee -a /tmp/elysium-debug.log
         
         case "$response" in
             [yY][eE][sS]|[yY]) 
-                echo "[DEBUG] Returning 0 (yes)" >> /tmp/elysium-debug.log
+                echo "[DEBUG] Returning 0 (yes)" | tee -a /tmp/elysium-debug.log
                 return 0
                 ;;
             [nN][oO]|[nN]|"")
-                echo "[DEBUG] Returning 1 (no/cancel)" >> /tmp/elysium-debug.log
+                echo "[DEBUG] Returning 1 (no/cancel)" | tee -a /tmp/elysium-debug.log
                 return 1
                 ;;
             *)
-                echo "[DEBUG] Invalid input '$response', looping again" >> /tmp/elysium-debug.log
+                echo "[DEBUG] Invalid input '$response', looping again" | tee -a /tmp/elysium-debug.log
                 print_error "Please answer yes or no."
-                echo "[DEBUG] About to loop again in confirm function" >> /tmp/elysium-debug.log
+                echo "[DEBUG] About to loop again in confirm function" | tee -a /tmp/elysium-debug.log
                 ;;
         esac
     done
-    echo "[DEBUG] Exited confirm while loop - THIS SHOULD NEVER HAPPEN" >> /tmp/elysium-debug.log
+    echo "[DEBUG] Exited confirm while loop - THIS SHOULD NEVER HAPPEN" | tee -a /tmp/elysium-debug.log
 }
 
 # Install packages using pacman
