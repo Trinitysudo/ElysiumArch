@@ -30,19 +30,19 @@ arch-chroot /mnt pacman -S --noconfirm --needed \
 
 print_success "Media players installed"
 
-# Install office suite
-print_info "Installing LibreOffice..."
-arch-chroot /mnt pacman -S --noconfirm --needed libreoffice-fresh
-
-print_success "LibreOffice installed"
-
-# Install email client
-print_info "Installing Thunderbird..."
-arch-chroot /mnt pacman -S --noconfirm --needed thunderbird
-
-print_success "Thunderbird installed"
-
 # Install image editing
+print_info "Installing GIMP..."
+arch-chroot /mnt pacman -S --noconfirm --needed gimp
+
+print_success "GIMP installed"
+
+# Install AUR applications (require yay)
+print_info "Installing AUR applications..."
+
+# Install Visual Studio Code
+print_info "Installing Visual Studio Code..."
+arch-chroot /mnt su - $USERNAME -c "yay -S --noconfirm visual-studio-code-bin"
+
 if [[ $? -eq 0 ]]; then
     print_success "VS Code installed"
 else
