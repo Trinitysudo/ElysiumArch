@@ -28,7 +28,8 @@ print_info "Configuring GNOME theme settings..."
 mkdir -p /mnt/home/$USERNAME/.config/dconf
 
 # Apply theme settings (will take effect after first login)
-cat > /mnt/tmp/gnome-theme.sh << 'THEME_EOF'
+mkdir -p /mnt/home/$USERNAME/.local/bin
+cat > /mnt/home/$USERNAME/.local/bin/gnome-theme.sh << 'THEME_EOF'
 #!/bin/bash
 # Apply dark theme
 gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita-dark'
@@ -50,10 +51,13 @@ gsettings set org.gnome.desktop.interface monospace-font-name 'Ubuntu Mono 13'
 
 # Enable dark theme for legacy applications
 gsettings set org.gnome.desktop.interface gtk-application-prefer-dark-theme true
+
+# Remove this autostart file after first run
+rm -f ~/.config/autostart/elysium-theme.desktop
 THEME_EOF
 
-chmod +x /mnt/tmp/gnome-theme.sh
-chown $USERNAME:$USERNAME /mnt/tmp/gnome-theme.sh
+chmod +x /mnt/home/$USERNAME/.local/bin/gnome-theme.sh
+chown -R $USERNAME:$USERNAME /mnt/home/$USERNAME/.local
 
 print_success "Theme configuration created"
 
@@ -73,11 +77,14 @@ cat > /mnt/home/$USERNAME/.config/autostart/elysium-theme.desktop << 'EOF'
 [Desktop Entry]
 Type=Application
 Name=ElysiumArch Theme
-Exec=/tmp/gnome-theme.sh
+Exec=/home/$USERNAME/.local/bin/gnome-theme.sh
 Hidden=false
 NoDisplay=false
 X-GNOME-Autostart-enabled=true
 EOF
+
+# Replace $USERNAME in desktop file
+sed -i "s/\$USERNAME/$USERNAME/g" /mnt/home/$USERNAME/.config/autostart/elysium-theme.desktop
 
 chown -R $USERNAME:$USERNAME /mnt/home/$USERNAME/.config
 

@@ -41,7 +41,8 @@ print_success "Dash to Dock installed"
 # Create extension configuration script
 print_info "Configuring GNOME extensions..."
 
-cat > /mnt/tmp/configure-extensions.sh << 'EXTEOF'
+mkdir -p /mnt/home/$USERNAME/.local/bin
+cat > /mnt/home/$USERNAME/.local/bin/configure-extensions.sh << 'EXTEOF'
 #!/bin/bash
 
 # Enable extensions
@@ -101,10 +102,14 @@ gsettings set org.gnome.shell.extensions.dash-to-dock hot-keys false
 gsettings set org.gnome.shell.extensions.dash-to-dock hotkeys-overlay false
 gsettings set org.gnome.shell.extensions.dash-to-dock hotkeys-show-dock false
 
+# Remove this autostart file after first run
+rm -f ~/.config/autostart/configure-gnome-extensions.desktop
+
 echo "Extensions configured successfully!"
 EXTEOF
 
-chmod +x /mnt/tmp/configure-extensions.sh
+chmod +x /mnt/home/$USERNAME/.local/bin/configure-extensions.sh
+chown -R $USERNAME:$USERNAME /mnt/home/$USERNAME/.local
 
 # Create autostart entry for extension configuration
 mkdir -p /mnt/home/$USERNAME/.config/autostart
@@ -113,12 +118,15 @@ cat > /mnt/home/$USERNAME/.config/autostart/configure-gnome-extensions.desktop <
 [Desktop Entry]
 Type=Application
 Name=Configure GNOME Extensions
-Exec=/tmp/configure-extensions.sh
+Exec=/home/$USERNAME/.local/bin/configure-extensions.sh
 Hidden=false
 NoDisplay=false
 X-GNOME-Autostart-enabled=true
 X-GNOME-Autostart-Delay=5
 EOF
+
+# Replace $USERNAME in desktop file
+sed -i "s/\$USERNAME/$USERNAME/g" /mnt/home/$USERNAME/.config/autostart/configure-gnome-extensions.desktop
 
 chown -R $USERNAME:$USERNAME /mnt/home/$USERNAME/.config
 

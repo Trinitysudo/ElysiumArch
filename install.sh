@@ -221,7 +221,14 @@ display_summary() {
     print_info "=========================================="
     print_info "✓ Base system installed and configured"
     print_info "✓ GNOME desktop environment installed"
-    print_info "✓ NVIDIA drivers installed (RTX 3060)"
+    
+    # Check if NVIDIA was installed
+    if ! systemd-detect-virt --quiet && lspci 2>/dev/null | grep -i nvidia &>/dev/null; then
+        print_info "✓ NVIDIA drivers installed"
+    else
+        print_info "✓ Graphics drivers configured"
+    fi
+    
     print_info "✓ Development tools installed:"
     print_info "    - Java OpenJDK 17 & 21"
     print_info "    - Visual Studio Code"
