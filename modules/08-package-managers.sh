@@ -16,9 +16,13 @@ print_info "Installing yay (AUR helper)..."
 arch-chroot /mnt mkdir -p /home/$USERNAME/aur-build
 arch-chroot /mnt chown $USERNAME:$USERNAME /home/$USERNAME/aur-build
 
-# Clone and build as user in one command
-print_info "Cloning and building yay..."
-arch-chroot /mnt su -s /bin/bash $USERNAME -c "cd /home/$USERNAME/aur-build && git clone https://aur.archlinux.org/yay.git && cd yay && makepkg -s --noconfirm --needed"
+# Clone yay repository
+print_info "Cloning yay repository..."
+arch-chroot /mnt su $USERNAME -c "cd /home/$USERNAME/aur-build && git clone https://aur.archlinux.org/yay.git"
+
+# Build yay package as user - use fakeroot to avoid root detection
+print_info "Building yay package..."
+arch-chroot /mnt su $USERNAME -c "cd /home/$USERNAME/aur-build/yay && makepkg -s --noconfirm --needed"
 
 YAY_BUILD_EXIT=$?
 
@@ -31,7 +35,7 @@ fi
 
 # Install the built package with pacman
 print_info "Installing yay package..."
-arch-chroot /mnt pacman -U --noconfirm /home/$USERNAME/aur-build/yay/*.pkg.tar.zst
+arch-chroot /mnt pacman -U --noconfirm /home/$USERNAME/aur-build/yay/*.pkg.tar*
 
 YAY_EXIT_CODE=$?
 
@@ -65,9 +69,13 @@ print_info "Installing paru (alternative AUR helper)..."
 arch-chroot /mnt mkdir -p /home/$USERNAME/aur-build
 arch-chroot /mnt chown $USERNAME:$USERNAME /home/$USERNAME/aur-build
 
-# Clone and build as user in one command
-print_info "Cloning and building paru..."
-arch-chroot /mnt su -s /bin/bash $USERNAME -c "cd /home/$USERNAME/aur-build && git clone https://aur.archlinux.org/paru.git && cd paru && makepkg -s --noconfirm --needed"
+# Clone paru repository
+print_info "Cloning paru repository..."
+arch-chroot /mnt su $USERNAME -c "cd /home/$USERNAME/aur-build && git clone https://aur.archlinux.org/paru.git"
+
+# Build paru package as user
+print_info "Building paru package..."
+arch-chroot /mnt su $USERNAME -c "cd /home/$USERNAME/aur-build/paru && makepkg -s --noconfirm --needed"
 
 PARU_BUILD_EXIT=$?
 
@@ -80,7 +88,7 @@ fi
 
 # Install the built package with pacman
 print_info "Installing paru package..."
-arch-chroot /mnt pacman -U --noconfirm /home/$USERNAME/aur-build/paru/*.pkg.tar.zst
+arch-chroot /mnt pacman -U --noconfirm /home/$USERNAME/aur-build/paru/*.pkg.tar*
 
 PARU_EXIT_CODE=$?
 
