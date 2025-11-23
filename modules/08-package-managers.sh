@@ -6,110 +6,125 @@
 
 print_info "Installing AUR helpers and package managers..."
 
-# Install base-devel and sudo for building packages
-arch-chroot /mnt pacman -S --noconfirm --needed base-devel git sudo
+# Install required build tooling (sudo already present from base system but ensure)
+arch-chroot /mnt pacman -S --noconfirm --needed base-devel git util-linux sudo
 
-# Install yay-bin as user (precompiled binary - much faster)
-print_info "Installing yay (AUR helper)..."
+# Helper function to run a command strictly as the normal user inside chroot
+run_as_user() {
+    local CMD="$1"
+    # Use runuser (preferred) falling back to su if runuser fails
+    arch-chroot /mnt runuser -u "$USERNAME" -- /bin/bash -lc "$CMD" 2>/tmp/runuser_err.$$ || {
+        print_warning "runuser failed; falling back to su for: $CMD"
+        arch-chroot /mnt su - "$USERNAME" -c "$CMD"
+    }
+}
 
-# Create build directory in user's home and set ownership
-arch-chroot /mnt mkdir -p /home/$USERNAME/aur-build
-arch-chroot /mnt chown -R $USERNAME:$USERNAME /home/$USERNAME/aur-build
+# YAY INSTALLATION ---------------------------------------------------------
+if arch-chroot /mnt test -x /usr/bin/yay; then
+    print_info "yay already installed – skipping build"
+else
+    print_info "Installing yay (AUR helper)..."
 
-# Clone and build as user directly
-print_info "Cloning yay-bin..."
-arch-chroot /mnt sudo -u $USERNAME bash -c 'cd ~ && mkdir -p aur-build && cd aur-build && git clone https://aur.archlinux.org/yay-bin.git'
+    # Prepare user build workspace
+    run_as_user "mkdir -p ~/aur-build && rm -rf ~/aur-build/yay-bin ~/aur-build/yay"
 
-print_info "Building and installing yay..."
-arch-chroot /mnt sudo -u $USERNAME bash -c 'cd ~/aur-build/yay-bin && makepkg -si --noconfirm --needed'
+    print_info "Cloning yay-bin (precompiled) ..."
+    if run_as_user "cd ~/aur-build && git clone https://aur.archlinux.org/yay-bin.git"; then
+        print_info "Building yay-bin package..."
+        if run_as_user "cd ~/aur-build/yay-bin && makepkg -si --noconfirm --needed"; then
+            print_success "yay-bin installed"
+        else
+            print_warning "yay-bin build failed – falling back to source build of yay"
+            run_as_user "rm -rf ~/aur-build/yay-bin"
+            if run_as_user "cd ~/aur-build && git clone https://aur.archlinux.org/yay.git" && \
+               run_as_user "cd ~/aur-build/yay && makepkg -si --noconfirm --needed"; then
+                print_success "yay (source) installed"
+            else
+                print_error "Failed to build yay from both yay-bin and source"
+                log_error "Package Managers: yay installation failed"
+                exit 1
+            fi
+        fi
+    else
+        print_warning "Failed cloning yay-bin – attempting cloning yay (source)"
+        if run_as_user "cd ~/aur-build && git clone https://aur.archlinux.org/yay.git" && \
+           run_as_user "cd ~/aur-build/yay && makepkg -si --noconfirm --needed"; then
+            print_success "yay (source) installed"
+        else
+            print_error "Unable to clone/build yay"
+            log_error "Package Managers: yay installation failed"
+            exit 1
+        fi
+    fi
 
-YAY_BUILD_EXIT=$?
-
-# Cleanup
-arch-chroot /mnt rm -rf /home/$USERNAME/aur-build
-
-if [[ $YAY_BUILD_EXIT -ne 0 ]]; then
-    print_error "Failed to install yay (exit code: $YAY_BUILD_EXIT)"
-    log_error "Package Managers: yay installation failed"
-    arch-chroot /mnt rm -rf /home/$USERNAME/aur-build
-    exit 1
+    # Cleanup build dir (leave only if debugging needed)
+    run_as_user "rm -rf ~/aur-build"
 fi
 
-# Cleanup
-arch-chroot /mnt rm -rf /home/$USERNAME/aur-build
-
-# Verify yay binary exists
-if arch-chroot /mnt test -f /usr/bin/yay; then
-    print_success "yay installed successfully"
-    log_success "Package Managers: yay installed"
+# Final yay verification (ensure not root)
+if arch-chroot /mnt test -x /usr/bin/yay; then
+    YAY_VERSION=$(arch-chroot /mnt runuser -u "$USERNAME" -- yay --version 2>/dev/null || true)
+    if [[ -n "$YAY_VERSION" ]]; then
+        print_success "yay installed successfully (version: $YAY_VERSION)"
+        log_success "Package Managers: yay installed: $YAY_VERSION"
+    else
+        print_error "yay binary present but version check failed"
+        log_error "Package Managers: yay version verification failed"
+        exit 1
+    fi
 else
-    print_error "yay binary not found after installation"
+    print_error "yay binary not found after installation attempts"
     log_error "Package Managers: yay binary missing"
     exit 1
 fi
 
 # Install rust (required for paru)
-print_info "Installing Rust (required for paru)..."
+print_info "Installing Rust (required for paru) ..."
 arch-chroot /mnt pacman -S --noconfirm --needed rust
 
-# Install paru as user
-print_info "Installing paru (alternative AUR helper)..."
-
-# Create build directory in user's home and set ownership
-arch-chroot /mnt mkdir -p /home/$USERNAME/aur-build
-arch-chroot /mnt chown -R $USERNAME:$USERNAME /home/$USERNAME/aur-build
-
-# Clone and build as user directly
-print_info "Cloning paru..."
-arch-chroot /mnt sudo -u $USERNAME bash -c 'cd ~ && mkdir -p aur-build && cd aur-build && git clone https://aur.archlinux.org/paru.git'
-
-print_info "Building and installing paru..."
-arch-chroot /mnt sudo -u $USERNAME bash -c 'cd ~/aur-build/paru && makepkg -si --noconfirm --needed'
-
-PARU_BUILD_EXIT=$?
-
-# Cleanup
-arch-chroot /mnt rm -rf /home/$USERNAME/aur-build
-
-if [[ $PARU_BUILD_EXIT -ne 0 ]]; then
-    print_warning "Failed to install paru (optional, exit code: $PARU_BUILD_EXIT)"
-    log_warning "Package Managers: paru installation failed"
+print_info "Installing paru (optional alternative AUR helper)..."
+if arch-chroot /mnt test -x /usr/bin/paru; then
+    print_info "paru already installed – skipping"
 else
-    print_success "paru installed"
-    log_success "Package Managers: paru installed"
+    if run_as_user "mkdir -p ~/aur-build && cd ~/aur-build && git clone https://aur.archlinux.org/paru.git" && \
+       run_as_user "cd ~/aur-build/paru && makepkg -si --noconfirm --needed"; then
+        print_success "paru installed"
+        log_success "Package Managers: paru installed"
+    else
+        print_warning "paru installation failed (non-critical)"
+        log_warning "Package Managers: paru installation failed"
+    fi
+    run_as_user "rm -rf ~/aur-build"
 fi
-
-# Cleanup
-arch-chroot /mnt rm -rf /home/$USERNAME/aur-build
 
 # Configure yay
 print_info "Configuring yay..."
-arch-chroot /mnt su - $USERNAME -c "
-export PATH=\"\$HOME/.local/bin:/usr/local/bin:/usr/bin:/bin\"
-yay -Y --gendb
-yay -Y --devel --save
-"
+run_as_user "mkdir -p ~/.config/yay"
+cat > /mnt/home/$USERNAME/.config/yay/config.json <<'EOFYAY'
+{
+  "editor": "",
+  "cleanAfter": true,
+  "sudoloop": true,
+  "save": true,
+  "answerYes": true,
+  "devel": true,
+  "combinedUpgrade": true,
+  "redownload": false,
+  "useAsk": false
+}
+EOFYAY
+arch-chroot /mnt chown $USERNAME:$USERNAME /home/$USERNAME/.config/yay/config.json
 
-if [[ $? -eq 0 ]]; then
-    print_success "yay configured"
+if run_as_user "yay -Y --gendb"; then
+    print_success "yay database generated"
 else
-    print_warning "yay configuration had issues (non-critical)"
+    print_warning "Failed to generate yay DB (non-critical)"
 fi
 
-# Verify yay is working
-print_info "Verifying yay installation..."
-arch-chroot /mnt su - $USERNAME -c "
-export PATH=\"\$HOME/.local/bin:/usr/local/bin:/usr/bin:/bin\"
-which yay
-yay --version
-"
-
-if [[ $? -eq 0 ]]; then
-    print_success "yay is working correctly"
+if run_as_user "yay --version"; then
+    print_success "yay operational"
 else
-    print_error "yay verification failed"
-    print_info "Checking yay location..."
-    arch-chroot /mnt find /usr /home/$USERNAME -name yay -type f 2>/dev/null
+    print_error "yay final verification failed"
     exit 1
 fi
 
