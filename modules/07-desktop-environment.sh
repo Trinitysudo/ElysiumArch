@@ -26,8 +26,7 @@ arch-chroot /mnt pacman -S --noconfirm --needed \
     gnome \
     gnome-extra \
     gnome-tweaks \
-    dconf-editor \
-    chrome-gnome-shell
+    dconf-editor
 
 if [[ $? -ne 0 ]]; then
     print_error "Failed to install GNOME"
