@@ -38,6 +38,12 @@ source "${SCRIPT_DIR}/scripts/logger.sh"
 source "${SCRIPT_DIR}/scripts/ui.sh"
 source "${SCRIPT_DIR}/scripts/checkpoint.sh"
 
+# Load saved configuration if resuming
+if [[ -f /tmp/elysium-config/user.conf ]]; then
+    source /tmp/elysium-config/user.conf
+    export USERNAME USER_PASSWORD ROOT_PASSWORD
+fi
+
 # Run module with checkpoint
 run_module() {
     local module_file="$1"
@@ -89,6 +95,11 @@ main() {
     
     # Pre-installation checks
     check_system_requirements
+    
+    # Get user configuration (skip if resuming and config already saved)
+    if [[ "$LAST_CHECKPOINT" == "none" || -z "$USERNAME" ]]; then
+        get_user_configuration
+    fi
     
     # Confirm installation (skip if resuming and already confirmed)
     if [[ "$LAST_CHECKPOINT" == "none" ]]; then
@@ -226,6 +237,72 @@ check_system_requirements() {
 }
 
 # Confirm installation
+# Get user configuration
+get_user_configuration() {
+    echo ""
+    print_info "=========================================="
+    print_info "  System Configuration"
+    print_info "=========================================="
+    echo ""
+    
+    # Username
+    while true; do
+        read -p "$(print_info "Enter your username (lowercase, no spaces): ")" USERNAME
+        if [[ "$USERNAME" =~ ^[a-z_][a-z0-9_-]*$ ]]; then
+            break
+        else
+            print_error "Invalid username. Use lowercase letters, numbers, dash, and underscore only."
+        fi
+    done
+    
+    # User password
+    while true; do
+        read -sp "$(print_info "Enter password for $USERNAME: ")" USER_PASSWORD
+        echo ""
+        read -sp "$(print_info "Confirm password: ")" USER_PASSWORD2
+        echo ""
+        if [[ "$USER_PASSWORD" == "$USER_PASSWORD2" ]]; then
+            if [[ ${#USER_PASSWORD} -ge 6 ]]; then
+                break
+            else
+                print_error "Password must be at least 6 characters."
+            fi
+        else
+            print_error "Passwords do not match. Try again."
+        fi
+    done
+    
+    # Root password
+    while true; do
+        read -sp "$(print_info "Enter root password: ")" ROOT_PASSWORD
+        echo ""
+        read -sp "$(print_info "Confirm root password: ")" ROOT_PASSWORD2
+        echo ""
+        if [[ "$ROOT_PASSWORD" == "$ROOT_PASSWORD2" ]]; then
+            if [[ ${#ROOT_PASSWORD} -ge 6 ]]; then
+                break
+            else
+                print_error "Password must be at least 6 characters."
+            fi
+        else
+            print_error "Passwords do not match. Try again."
+        fi
+    done
+    
+    # Save configuration for resume
+    mkdir -p /tmp/elysium-config
+    cat > /tmp/elysium-config/user.conf << EOF
+USERNAME="$USERNAME"
+USER_PASSWORD="$USER_PASSWORD"
+ROOT_PASSWORD="$ROOT_PASSWORD"
+EOF
+    
+    print_success "Configuration saved"
+    
+    # Export for current session
+    export USERNAME USER_PASSWORD ROOT_PASSWORD
+}
+
 confirm_installation() {
     echo ""
     print_warning "=========================================="
