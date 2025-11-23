@@ -15,17 +15,30 @@ print_info "Installing yay (AUR helper)..."
 # Make sure PKGBUILD directory is clean
 arch-chroot /mnt rm -rf /tmp/yay
 
-# Clone and build yay
+# Clone and build yay as user, then install as root
 arch-chroot /mnt su - $USERNAME -c "
 set -e
 cd /tmp
 echo 'Cloning yay repository...'
 git clone https://aur.archlinux.org/yay.git
 cd yay
-echo 'Building yay...'
-makepkg -si --noconfirm --needed
-echo 'Yay build complete'
+echo 'Building yay package...'
+makepkg -s --noconfirm --needed
+echo 'Yay package built successfully'
 "
+
+YAY_BUILD_EXIT=$?
+
+if [[ $YAY_BUILD_EXIT -ne 0 ]]; then
+    print_error "Failed to build yay package (exit code: $YAY_BUILD_EXIT)"
+    log_error "Package Managers: yay build failed"
+    arch-chroot /mnt rm -rf /tmp/yay
+    exit 1
+fi
+
+# Install the built package with pacman
+print_info "Installing yay package..."
+arch-chroot /mnt pacman -U --noconfirm /tmp/yay/*.pkg.tar.zst
 
 YAY_EXIT_CODE=$?
 
@@ -58,17 +71,30 @@ print_info "Installing paru (alternative AUR helper)..."
 # Make sure PKGBUILD directory is clean
 arch-chroot /mnt rm -rf /tmp/paru
 
-# Clone and build paru
+# Clone and build paru as user, then install as root
 arch-chroot /mnt su - $USERNAME -c "
 set -e
 cd /tmp
 echo 'Cloning paru repository...'
 git clone https://aur.archlinux.org/paru.git
 cd paru
-echo 'Building paru...'
-makepkg -si --noconfirm --needed
-echo 'Paru build complete'
+echo 'Building paru package...'
+makepkg -s --noconfirm --needed
+echo 'Paru package built successfully'
 " 2>&1
+
+PARU_BUILD_EXIT=$?
+
+if [[ $PARU_BUILD_EXIT -ne 0 ]]; then
+    print_error "Failed to build paru package (exit code: $PARU_BUILD_EXIT)"
+    log_error "Package Managers: paru build failed"
+    arch-chroot /mnt rm -rf /tmp/paru
+    exit 1
+fi
+
+# Install the built package with pacman
+print_info "Installing paru package..."
+arch-chroot /mnt pacman -U --noconfirm /tmp/paru/*.pkg.tar.zst
 
 PARU_EXIT_CODE=$?
 
