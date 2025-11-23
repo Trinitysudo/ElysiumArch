@@ -12,9 +12,10 @@ arch-chroot /mnt pacman -S --noconfirm --needed base-devel git util-linux sudo
 # Load saved configuration if not already loaded
 if [[ -z "$USERNAME" ]] && [[ -f /tmp/elysium-config/user.conf ]]; then
     source /tmp/elysium-config/user.conf
+    print_info "Loaded user config from resume state"
 fi
 
-# If still not set, prompt now
+# If still not set, prompt now (fallback only)
 if [[ -z "$USERNAME" ]]; then
     print_warning "User configuration not found. Please enter details:"
     read -p "Username: " USERNAME
@@ -27,6 +28,8 @@ USERNAME="$USERNAME"
 USER_PASSWORD="$USER_PASSWORD"
 EOF
     export USERNAME USER_PASSWORD
+else
+    print_info "Using configured username: $USERNAME"
 fi
 
 # Verify user exists
@@ -145,8 +148,8 @@ arch-chroot /mnt pacman -S --noconfirm --needed rust
 print_info "Installing paru (optional alternative AUR helper)..."
 if arch-chroot /mnt test -x /usr/bin/paru; then
     print_info "paru already installed – skipping"
-elif [[ -n "$ELYSIUM_SKIP_PARU" ]]; then
-    print_info "ELYSIUM_SKIP_PARU set – skipping paru install"
+elif [[ "$SKIP_PARU" == "1" || -n "$ELYSIUM_SKIP_PARU" ]]; then
+    print_info "Paru installation skipped (configured in config.sh)"
 else
     run_as_user "mkdir -p ~/aur-build && rm -rf ~/aur-build/paru-bin ~/aur-build/paru"
     PARU_START=$SECONDS

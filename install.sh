@@ -32,13 +32,20 @@ echo "=========================================" | tee -a "$DEBUG_LOG"
 # Trap to catch unexpected exits
 trap 'echo "[TRAP] Script exited at line $LINENO with exit code $?" | tee -a "$DEBUG_LOG"' ERR
 
+# Source config file first (user edits this)
+if [[ -f "${SCRIPT_DIR}/config.sh" ]]; then
+    source "${SCRIPT_DIR}/config.sh"
+    export USERNAME USER_PASSWORD ROOT_PASSWORD TIMEZONE LOCALE KEYMAP DISK SKIP_PARU SKIP_HOMEBREW
+    print_info "Loaded configuration from config.sh"
+fi
+
 # Source helper scripts
 source "${SCRIPT_DIR}/scripts/helpers.sh"
 source "${SCRIPT_DIR}/scripts/logger.sh"
 source "${SCRIPT_DIR}/scripts/ui.sh"
 source "${SCRIPT_DIR}/scripts/checkpoint.sh"
 
-# Load saved configuration if resuming
+# Load saved configuration if resuming (overrides config.sh if exists)
 if [[ -f /tmp/elysium-config/user.conf ]]; then
     source /tmp/elysium-config/user.conf
     export USERNAME USER_PASSWORD ROOT_PASSWORD
@@ -96,9 +103,19 @@ main() {
     # Pre-installation checks
     check_system_requirements
     
-    # Get user configuration (skip if resuming and config already saved)
-    if [[ "$LAST_CHECKPOINT" == "none" || -z "$USERNAME" ]]; then
+    # Get user configuration (skip if already set in config.sh or resuming)
+    if [[ -z "$USERNAME" || "$USERNAME" == "youruser" ]]; then
+        print_warning "USERNAME not configured in config.sh"
         get_user_configuration
+    else
+        print_success "Using configuration from config.sh (Username: $USERNAME)"
+        # Save for resume capability
+        mkdir -p /tmp/elysium-config
+        cat > /tmp/elysium-config/user.conf << EOF
+USERNAME="$USERNAME"
+USER_PASSWORD="$USER_PASSWORD"
+ROOT_PASSWORD="$ROOT_PASSWORD"
+EOF
     fi
     
     # Confirm installation (skip if resuming and already confirmed)
