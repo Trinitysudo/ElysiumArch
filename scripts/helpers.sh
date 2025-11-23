@@ -42,10 +42,19 @@ confirm() {
     local response
     
     echo "[DEBUG] confirm() called with: '$prompt'" | tee -a /tmp/elysium-debug.log
+    echo "[DEBUG] Checking stdin: $(test -t 0 && echo 'interactive' || echo 'non-interactive')" | tee -a /tmp/elysium-debug.log
     
     while true; do
-        read -p "$(echo -e ${YELLOW}[?]${NC}) $prompt [y/N]: " response
+        read -r -p "$(echo -e ${YELLOW}[?]${NC}) $prompt [y/N]: " response
+        local read_exit_code=$?
+        echo "[DEBUG] read command exit code: $read_exit_code" | tee -a /tmp/elysium-debug.log
         echo "[DEBUG] User response: '$response'" | tee -a /tmp/elysium-debug.log
+        
+        # Check if read failed (EOF or error)
+        if [[ $read_exit_code -ne 0 ]]; then
+            echo "[ERROR] read command failed with exit code $read_exit_code - stdin may not be interactive" | tee -a /tmp/elysium-debug.log
+            return 1
+        fi
         
         case "$response" in
             [yY][eE][sS]|[yY]) 
