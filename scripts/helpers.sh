@@ -57,11 +57,13 @@ confirm() {
                 return 1
                 ;;
             *)
-                echo "[DEBUG] Invalid input, looping again" >> /tmp/elysium-debug.log
+                echo "[DEBUG] Invalid input '$response', looping again" >> /tmp/elysium-debug.log
                 print_error "Please answer yes or no."
+                echo "[DEBUG] About to loop again in confirm function" >> /tmp/elysium-debug.log
                 ;;
         esac
     done
+    echo "[DEBUG] Exited confirm while loop - THIS SHOULD NEVER HAPPEN" >> /tmp/elysium-debug.log
 }
 
 # Install packages using pacman

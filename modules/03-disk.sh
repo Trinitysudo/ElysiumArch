@@ -108,10 +108,15 @@ print_warning "ALL data will be permanently deleted!"
 echo ""
 
 echo "[DEBUG] About to call final confirmation before wiping disk" >> /tmp/elysium-debug.log
-if ! confirm "Proceed with installation?"; then
-    echo "[ERROR] User cancelled final confirmation, exiting script" >> /tmp/elysium-debug.log
+confirm "Proceed with installation?"
+CONFIRM_EXIT_CODE=$?
+echo "[DEBUG] confirm() returned with exit code: $CONFIRM_EXIT_CODE" >> /tmp/elysium-debug.log
+
+if [[ $CONFIRM_EXIT_CODE -ne 0 ]]; then
+    echo "[ERROR] User cancelled final confirmation (exit code: $CONFIRM_EXIT_CODE), exiting script" >> /tmp/elysium-debug.log
     print_error "Installation cancelled by user"
     log_error "Disk: User cancelled installation"
+    cat /tmp/elysium-debug.log
     exit 0
 fi
 echo "[DEBUG] User confirmed final confirmation, proceeding with disk wipe" >> /tmp/elysium-debug.log

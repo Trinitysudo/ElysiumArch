@@ -25,7 +25,7 @@ echo "Started: $(date)" >> /tmp/elysium-debug.log
 echo "=========================================" >> /tmp/elysium-debug.log
 
 # Trap to catch unexpected exits
-trap 'echo "[TRAP] Script exited unexpectedly at line $LINENO with exit code $?" >> /tmp/elysium-debug.log; echo ""; echo "=== DEBUG LOG ==="; cat /tmp/elysium-debug.log; exit 1' ERR EXIT
+trap 'echo "[TRAP] Script exited at line $LINENO with exit code $?" >> /tmp/elysium-debug.log' ERR
 
 # Source helper scripts
 source "${SCRIPT_DIR}/scripts/helpers.sh"
