@@ -98,10 +98,10 @@ log_info "Base: User account created: $USERNAME"
 
 # Configure sudo
 print_info "Configuring sudo access..."
-sed -i 's/^# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /mnt/etc/sudoers
-# Add NOPASSWD for installation (will be removed later)
+# Comment out password-required line and enable NOPASSWD for installation
+sed -i 's/^%wheel ALL=(ALL:ALL) ALL/# %wheel ALL=(ALL:ALL) ALL/' /mnt/etc/sudoers
 sed -i 's/^# %wheel ALL=(ALL:ALL) NOPASSWD: ALL/%wheel ALL=(ALL:ALL) NOPASSWD: ALL/' /mnt/etc/sudoers
-print_success "Sudo access configured for wheel group"
+print_success "Sudo access configured for wheel group (NOPASSWD enabled for installation)"
 
 # Enable NetworkManager
 arch-chroot /mnt systemctl enable NetworkManager
