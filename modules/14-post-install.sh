@@ -259,5 +259,17 @@ chown -R $USERNAME:$USERNAME /mnt/home/$USERNAME/.config/autostart
 print_success "First-boot report configured"
 log_success "Post-Install: First-boot report system configured"
 
+# Security hardening - restore password requirement for sudo
+print_info "Applying security hardening..."
+print_info "Restoring sudo password requirement..."
+
+# Remove NOPASSWD from wheel group
+sed -i 's/^%wheel ALL=(ALL:ALL) NOPASSWD: ALL/# %wheel ALL=(ALL:ALL) NOPASSWD: ALL/' /mnt/etc/sudoers
+# Ensure password-required line is active
+sed -i 's/^# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /mnt/etc/sudoers
+
+print_success "Security hardening applied - sudo now requires password"
+log_success "Post-Install: Security hardening completed"
+
 print_success "Post-installation configuration complete"
 log_success "Post-Install: All configurations applied"

@@ -99,6 +99,8 @@ log_info "Base: User account created: $USERNAME"
 # Configure sudo
 print_info "Configuring sudo access..."
 sed -i 's/^# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /mnt/etc/sudoers
+# Add NOPASSWD for installation (will be removed later)
+sed -i 's/^# %wheel ALL=(ALL:ALL) NOPASSWD: ALL/%wheel ALL=(ALL:ALL) NOPASSWD: ALL/' /mnt/etc/sudoers
 print_success "Sudo access configured for wheel group"
 
 # Enable NetworkManager
