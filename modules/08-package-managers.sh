@@ -12,17 +12,18 @@ arch-chroot /mnt pacman -S --noconfirm --needed base-devel git
 # Install yay as user
 print_info "Installing yay (AUR helper)..."
 
-# Create build directory in user's home
+# Create build directory in user's home and set ownership
 arch-chroot /mnt mkdir -p /home/$USERNAME/aur-build
-arch-chroot /mnt chown -R $USERNAME:$USERNAME /home/$USERNAME/aur-build
+arch-chroot /mnt chown $USERNAME:$USERNAME /home/$USERNAME/aur-build
 
-# Clone yay repository
-print_info "Cloning yay repository..."
-arch-chroot /mnt runuser -u $USERNAME -- git clone https://aur.archlinux.org/yay.git /home/$USERNAME/aur-build/yay
-
-# Build yay package as user
-print_info "Building yay package..."
-arch-chroot /mnt bash -c "cd /home/$USERNAME/aur-build/yay && runuser -u $USERNAME makepkg -s --noconfirm --needed"
+# Clone and build as user in one command
+print_info "Cloning and building yay..."
+arch-chroot /mnt runuser -u $USERNAME -- bash -c '
+cd /home/'"$USERNAME"'/aur-build
+git clone https://aur.archlinux.org/yay.git
+cd yay
+makepkg -s --noconfirm --needed
+'
 
 YAY_BUILD_EXIT=$?
 
@@ -41,9 +42,6 @@ YAY_EXIT_CODE=$?
 
 # Cleanup
 arch-chroot /mnt rm -rf /home/$USERNAME/aur-build
-
-# Cleanup
-arch-chroot /mnt rm -rf /tmp/yay
 
 if [[ $YAY_EXIT_CODE -eq 0 ]]; then
     # Verify yay binary exists
@@ -68,17 +66,18 @@ arch-chroot /mnt pacman -S --noconfirm --needed rust
 # Install paru as user
 print_info "Installing paru (alternative AUR helper)..."
 
-# Create build directory in user's home (reuse same directory)
+# Create build directory in user's home and set ownership
 arch-chroot /mnt mkdir -p /home/$USERNAME/aur-build
-arch-chroot /mnt chown -R $USERNAME:$USERNAME /home/$USERNAME/aur-build
+arch-chroot /mnt chown $USERNAME:$USERNAME /home/$USERNAME/aur-build
 
-# Clone paru repository
-print_info "Cloning paru repository..."
-arch-chroot /mnt runuser -u $USERNAME -- git clone https://aur.archlinux.org/paru.git /home/$USERNAME/aur-build/paru
-
-# Build paru package as user
-print_info "Building paru package..."
-arch-chroot /mnt bash -c "cd /home/$USERNAME/aur-build/paru && runuser -u $USERNAME makepkg -s --noconfirm --needed"
+# Clone and build as user in one command
+print_info "Cloning and building paru..."
+arch-chroot /mnt runuser -u $USERNAME -- bash -c '
+cd /home/'"$USERNAME"'/aur-build
+git clone https://aur.archlinux.org/paru.git
+cd paru
+makepkg -s --noconfirm --needed
+'
 
 PARU_BUILD_EXIT=$?
 
