@@ -1,0 +1,52 @@
+# Development Tools and Programming Languages
+# Optimized for Java development
+
+# Java Development Kits
+jdk-openjdk
+jdk17-openjdk
+jdk21-openjdk
+jre-openjdk
+jre17-openjdk
+jre21-openjdk
+
+# Java build tools
+maven
+gradle
+
+# Node.js and JavaScript
+nodejs
+npm
+yarn
+
+# Python (useful for scripts and tools)
+python
+python-pip
+python-virtualenv
+
+# C/C++ development
+gcc
+g++
+clang
+gdb
+valgrind
+
+# Version control
+git
+git-lfs
+github-cli
+
+# Database clients
+postgresql-libs
+mariadb-clients
+
+# API testing and development
+httpie
+jq
+
+# Code quality tools
+shellcheck
+
+# Documentation
+man-db
+man-pages
+tldr

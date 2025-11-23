@@ -1,0 +1,95 @@
+# AUR Packages
+# Packages that need to be installed from the Arch User Repository
+
+# Web browsers
+brave-bin
+
+# Communication
+discord
+slack-desktop
+
+# Development IDEs
+visual-studio-code-bin
+intellij-idea-community-edition
+
+# Gaming launchers
+modrinth-app-bin
+
+# USB creation tools
+balena-etcher-bin
+
+# Terminal emulators
+kitty
+
+# Shell and prompt
+starship
+zsh-theme-powerlevel10k-git
+
+# System utilities
+fastfetch
+timeshift
+timeshift-autosnap
+
+# Archive tools
+p7zip
+unrar
+
+# Live wallpapers
+komorebi
+
+# GNOME extensions manager
+extension-manager
+
+# Fonts
+ttf-ms-fonts
+ttf-vista-fonts
+nerd-fonts-complete
+
+# Video conferencing
+zoom
+
+# Note-taking
+obsidian
+
+# Gaming utilities
+mangohud
+goverlay
+gamemode
+proton-ge-custom-bin
+
+# Alternative game launchers
+heroic-games-launcher-bin
+lutris
+
+# Database tools
+dbeaver
+
+# Postman
+postman-bin
+
+# Wine for Windows apps
+wine-staging
+winetricks
+
+# System optimization
+preload
+irqbalance
+
+# Remote desktop
+remmina
+
+# Cloud storage
+rclone
+
+# File managers (alternative)
+nemo
+thunar
+
+# Productivity
+notion-app
+
+# Color picker
+gcolor3
+
+# Clipboard manager
+copyq

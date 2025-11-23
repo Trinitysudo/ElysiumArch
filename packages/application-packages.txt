@@ -1,0 +1,63 @@
+# User Applications
+# Main applications for daily use and productivity
+
+# Web browser - handled via AUR (Brave)
+# brave-bin will be installed via yay
+
+# Communication
+# Discord - will be installed via yay or flatpak
+
+# Gaming
+steam
+lib32-nvidia-utils
+vulkan-icd-loader
+lib32-vulkan-icd-loader
+
+# Content creation
+obs-studio
+kdenlive
+audacity
+gimp
+blender
+
+# Media players
+vlc
+mpv
+
+# Office suite
+libreoffice-fresh
+
+# Email client
+thunderbird
+
+# Image viewer
+eog
+eog-plugins
+
+# PDF viewer
+evince
+
+# Video conferencing
+# zoom will be installed via AUR
+
+# Note-taking
+# obsidian will be installed via AUR
+
+# File synchronization
+syncthing
+
+# Torrent client
+transmission-gtk
+
+# Password manager
+keepassxc
+
+# System monitoring
+htop
+btop
+nvtop
+iotop
+
+# Network tools
+nmap
+wireshark-qt

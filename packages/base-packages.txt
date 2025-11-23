@@ -1,0 +1,67 @@
+# Base System Packages for ElysiumArch
+# These are the essential packages for the base Arch Linux system
+
+# Base system
+base
+base-devel
+linux
+linux-firmware
+linux-headers
+
+# Boot and system management
+grub
+efibootmgr
+os-prober
+mkinitcpio
+
+# CPU microcode
+amd-ucode
+
+# Network
+networkmanager
+network-manager-applet
+dhcpcd
+iwd
+wireless_tools
+wpa_supplicant
+
+# System utilities
+sudo
+man-db
+man-pages
+texinfo
+nano
+vim
+which
+wget
+curl
+git
+openssh
+rsync
+
+# Compression tools
+zip
+unzip
+tar
+gzip
+bzip2
+
+# File system tools
+dosfstools
+mtools
+ntfs-3g
+exfat-utils
+
+# Essential development tools
+gcc
+make
+cmake
+pkg-config
+autoconf
+automake
+
+# Security tools
+ufw
+fail2ban
+apparmor
+audit

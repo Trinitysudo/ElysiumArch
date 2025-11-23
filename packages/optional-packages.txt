@@ -1,0 +1,111 @@
+# Optional Packages
+# These packages are optional but recommended for enhanced functionality
+
+# Additional Security (optional)
+rkhunter
+clamav
+lynis
+chkrootkit
+
+# Backup solutions
+rsync
+duplicity
+borg
+
+# Terminal tools
+tmux
+screen
+ranger
+lf
+fzf
+ripgrep
+fd
+exa
+bat
+procs
+dust
+duf
+ncdu
+
+# System monitoring
+glances
+nmon
+sysstat
+lm_sensors
+
+# Network file systems
+nfs-utils
+samba
+cifs-utils
+
+# Virtualization
+qemu
+virt-manager
+libvirt
+docker
+docker-compose
+
+# Additional fonts
+ttf-font-awesome
+ttf-fira-code
+ttf-jetbrains-mono
+ttf-hack
+
+# Graphics tools
+inkscape
+krita
+darktable
+
+# Music production
+ardour
+lmms
+
+# Video encoding
+handbrake
+ffmpeg
+
+# Ebook management
+calibre
+
+# Screenshot tools
+flameshot
+maim
+scrot
+
+# Color management
+colord
+argyllcms
+
+# Power management (for laptops)
+tlp
+powertop
+laptop-mode-tools
+
+# Firewall GUI
+gufw
+
+# Disk management
+gparted
+gnome-disk-utility
+
+# Android tools
+android-tools
+android-file-transfer
+
+# System information
+neofetch
+screenfetch
+hwinfo
+inxi
+
+# Terminal recording
+asciinema
+termtosvg
+
+# Productivity shortcuts
+espanso
+
+# Additional media codecs
+gst-plugins-ugly
+gst-plugins-bad
+gst-libav

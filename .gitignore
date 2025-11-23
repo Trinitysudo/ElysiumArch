@@ -1,0 +1,57 @@
+# .gitignore for ElysiumArch
+
+# Logs
+logs/*.log
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+*~
+.*.swp
+.*.swo
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Editor-specific files
+.vscode/
+.idea/
+*.code-workspace
+
+# Build artifacts
+*.o
+*.so
+*.a
+*.out
+
+# Package manager files
+*.pkg.tar.zst
+pkg/
+src/
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# User-specific configurations
+user-config.sh
+custom-packages.txt
+
+# Downloaded assets (too large for git)
+assets/wallpapers/*.jpg
+assets/wallpapers/*.png
+!assets/wallpapers/.gitkeep
+
+# Test files
+test-*.sh
+vm-test-results/
+
+# Sensitive information
+*.key
+*.pem
+secrets.txt
+passwords.txt

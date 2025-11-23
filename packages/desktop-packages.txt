@@ -1,0 +1,62 @@
+# Desktop Environment Packages - GNOME
+# Full GNOME desktop environment with all components
+
+# GNOME core
+gnome
+gnome-extra
+
+# Display manager
+gdm
+
+# Wayland/X11 support
+xorg-server
+xorg-apps
+xorg-xinit
+xf86-video-intel
+mesa
+wayland
+xorg-xwayland
+
+# Desktop utilities
+gnome-tweaks
+dconf-editor
+chrome-gnome-shell
+
+# File management
+nautilus
+file-roller
+gvfs
+gvfs-mtp
+gvfs-nfs
+gvfs-smb
+
+# System tray and notifications
+gnome-shell-extensions
+
+# Fonts
+ttf-dejavu
+ttf-liberation
+noto-fonts
+noto-fonts-emoji
+ttf-roboto
+ttf-ubuntu-font-family
+
+# Audio
+pipewire
+pipewire-alsa
+pipewire-pulse
+pipewire-jack
+wireplumber
+pavucontrol
+
+# Bluetooth
+bluez
+bluez-utils
+blueman
+
+# Printing (optional but useful)
+cups
+cups-pdf
+
+# Screenshot and screen recording
+gnome-screenshot
