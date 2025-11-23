@@ -68,70 +68,109 @@ print_info "Configuring fastfetch auto-start..."
 mkdir -p /mnt/home/$USERNAME/.config/kitty
 mkdir -p /mnt/home/$USERNAME/.config/fastfetch
 
-# Create beautiful Kitty config
+# Create beautiful Kitty config (ChrisTitus style)
 cat > /mnt/home/$USERNAME/.config/kitty/kitty.conf << 'KITTY_EOF'
-# ChrisTitus-style Kitty config
-font_family      JetBrainsMono Nerd Font
-bold_font        auto
-italic_font      auto
-bold_italic_font auto
-font_size 11.0
+# ChrisTitus-style Kitty Terminal Config
+# Beautiful, fast, feature-rich terminal
 
-# Theme: Monokai (dark, beautiful)
-background #1e1e1e
-foreground #f8f8f2
-cursor #f8f8f0
+# Font Configuration
+font_family      JetBrainsMono Nerd Font Mono
+bold_font        JetBrainsMono Nerd Font Mono Bold
+italic_font      JetBrainsMono Nerd Font Mono Italic
+bold_italic_font JetBrainsMono Nerd Font Mono Bold Italic
+font_size 12.0
 
+# Fallback fonts
+symbol_map U+23FB-U+23FE,U+2665,U+26A1,U+2B58,U+E000-U+E00A,U+E0A0-U+E0A3,U+E0B0-U+E0C8,U+E0CA,U+E0CC-U+E0D4,U+E200-U+E2A9,U+E300-U+E3E3,U+E5FA-U+E6B1,U+E700-U+E7C5,U+EA60-U+EBEB,U+F000-U+F2E0,U+F300-U+F32F,U+F400-U+F4A9,U+F500-U+FD46 JetBrainsMono Nerd Font Mono
+
+# Theme: Nord-inspired with blue accents (beautiful dark theme)
+background #1e1e2e
+foreground #cdd6f4
+cursor #f5e0dc
+cursor_text_color #1e1e2e
+
+# Selection colors
+selection_background #585b70
+selection_foreground #cdd6f4
+
+# Tab bar colors
+active_tab_background #89b4fa
+active_tab_foreground #1e1e2e
+inactive_tab_background #45475a
+inactive_tab_foreground #cdd6f4
+
+# Color palette (Catppuccin-inspired)
 # Black
-color0  #272822
-color8  #75715e
+color0  #45475a
+color8  #585b70
 
 # Red
-color1  #f92672
-color9  #f92672
+color1  #f38ba8
+color9  #f38ba8
 
 # Green
-color2  #a6e22e
-color10 #a6e22e
+color2  #a6e3a1
+color10 #a6e3a1
 
 # Yellow
-color3  #f4bf75
-color11 #f4bf75
+color3  #f9e2af
+color11 #f9e2af
 
 # Blue
-color4  #66d9ef
-color12 #66d9ef
+color4  #89b4fa
+color12 #89b4fa
 
 # Magenta
-color5  #ae81ff
-color13 #ae81ff
+color5  #cba6f7
+color13 #cba6f7
 
 # Cyan
-color6  #a1efe4
-color14 #a1efe4
+color6  #94e2d5
+color14 #94e2d5
 
 # White
-color7  #f8f8f2
-color15 #f9f8f5
+color7  #bac2de
+color15 #a6adc8
 
-# Window
-window_padding_width 4
-background_opacity 0.95
+# Window layout and appearance
+window_padding_width 8
+window_margin_width 0
+background_opacity 0.92
+dynamic_background_opacity yes
+
+# Don't ask for confirmation when closing
 confirm_os_window_close 0
 
 # Shell integration
 shell_integration enabled
 
-# Run fastfetch on startup
-startup_session ~/.config/kitty/startup.conf
+# Tab bar
+tab_bar_edge top
+tab_bar_style powerline
+tab_powerline_style slanted
+
+# Performance
+repaint_delay 10
+input_delay 3
+sync_to_monitor yes
+
+# Mouse
+mouse_hide_wait 2.0
+copy_on_select yes
+
+# Advanced
+allow_remote_control yes
+listen_on unix:/tmp/kitty
+
+# Bell
+enable_audio_bell no
+visual_bell_duration 0.0
+
+# Startup - run fastfetch then shell
+shell bash -c "fastfetch 2>/dev/null || true; exec bash"
 KITTY_EOF
 
-# Create startup session for fastfetch
-cat > /mnt/home/$USERNAME/.config/kitty/startup.conf << 'STARTUP_EOF'
-launch sh -c "fastfetch; exec $SHELL"
-STARTUP_EOF
-
-# Create beautiful fastfetch config (ChrisTitus style)
+# Create beautiful fastfetch config (ChrisTitus style - clean and informative)
 cat > /mnt/home/$USERNAME/.config/fastfetch/config.jsonc << 'FASTFETCH_EOF'
 {
   "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
@@ -139,80 +178,108 @@ cat > /mnt/home/$USERNAME/.config/fastfetch/config.jsonc << 'FASTFETCH_EOF'
     "type": "auto",
     "padding": {
       "top": 1,
-      "left": 2
+      "left": 3,
+      "right": 3
     }
   },
   "display": {
-    "separator": " → ",
+    "separator": "  ",
     "color": {
       "keys": "blue",
-      "title": "blue"
+      "title": "bold-blue"
     }
   },
   "modules": [
     {
       "type": "title",
-      "format": "{user-name-colored}@{host-name-colored}"
+      "format": "{user-name-colored}@{host-name-colored}",
+      "color": {
+        "user": "cyan",
+        "host": "blue"
+      }
     },
     {
       "type": "separator",
-      "string": "─"
+      "string": "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     },
     {
       "type": "os",
-      "key": " OS"
+      "key": "   OS",
+      "keyColor": "blue"
+    },
+    {
+      "type": "host",
+      "key": "   Host",
+      "keyColor": "blue"
     },
     {
       "type": "kernel",
-      "key": " Kernel"
-    },
-    {
-      "type": "packages",
-      "key": "󰏖 Packages"
-    },
-    {
-      "type": "shell",
-      "key": " Shell"
-    },
-    {
-      "type": "de",
-      "key": " DE"
-    },
-    {
-      "type": "wm",
-      "key": " WM"
-    },
-    {
-      "type": "terminal",
-      "key": " Terminal"
-    },
-    {
-      "type": "cpu",
-      "key": "󰻠 CPU"
-    },
-    {
-      "type": "gpu",
-      "key": "󰍛 GPU"
-    },
-    {
-      "type": "memory",
-      "key": "󰑭 Memory"
-    },
-    {
-      "type": "disk",
-      "key": " Disk"
+      "key": "   Kernel",
+      "keyColor": "blue"
     },
     {
       "type": "uptime",
-      "key": "󰅐 Uptime"
+      "key": "   Uptime",
+      "keyColor": "green"
+    },
+    {
+      "type": "packages",
+      "key": "  󰏖 Packages",
+      "keyColor": "cyan"
+    },
+    {
+      "type": "shell",
+      "key": "   Shell",
+      "keyColor": "yellow"
+    },
+    {
+      "type": "de",
+      "key": "   DE",
+      "keyColor": "blue"
+    },
+    {
+      "type": "wm",
+      "key": "   WM",
+      "keyColor": "blue"
+    },
+    {
+      "type": "terminal",
+      "key": "   Terminal",
+      "keyColor": "magenta"
+    },
+    {
+      "type": "cpu",
+      "key": "  󰻠 CPU",
+      "keyColor": "red"
+    },
+    {
+      "type": "gpu",
+      "key": "  󰍛 GPU",
+      "keyColor": "red"
+    },
+    {
+      "type": "memory",
+      "key": "  󰑭 Memory",
+      "keyColor": "yellow"
+    },
+    {
+      "type": "disk",
+      "key": "   Disk",
+      "keyColor": "cyan"
+    },
+    {
+      "type": "localip",
+      "key": "  󰩟 Local IP",
+      "keyColor": "green"
     },
     {
       "type": "separator",
-      "string": "─"
+      "string": "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     },
     {
       "type": "colors",
-      "symbol": "circle"
+      "symbol": "circle",
+      "paddingLeft": 2
     }
   ]
 }
@@ -221,30 +288,75 @@ FASTFETCH_EOF
 chown -R $USERNAME:$USERNAME /mnt/home/$USERNAME/.config/kitty
 chown -R $USERNAME:$USERNAME /mnt/home/$USERNAME/.config/fastfetch
 
-print_success "Kitty terminal configured with fastfetch auto-start"
+print_success "Kitty terminal configured with ChrisTitus-style theme"
+print_info "Features: Beautiful colors, Nerd Font icons, fastfetch on startup"
 
-# Also add fastfetch to bash/zsh for other terminals
-cat >> /mnt/home/$USERNAME/.bashrc << 'BASH_FASTFETCH'
+# Also add fastfetch to bash/zsh for GNOME Terminal and other terminals
+print_info "Configuring fastfetch for other terminals..."
 
-# Run fastfetch on terminal startup (except in Kitty which handles it)
-if [ -z "$KITTY_WINDOW_ID" ]; then
-    if command -v fastfetch &>/dev/null; then
-        fastfetch
+# For bash
+if ! grep -q "fastfetch" /mnt/home/$USERNAME/.bashrc 2>/dev/null; then
+    cat >> /mnt/home/$USERNAME/.bashrc << 'BASH_FASTFETCH'
+
+# Show system info with fastfetch on new terminal (ChrisTitus style)
+if command -v fastfetch &>/dev/null; then
+    # Only run in interactive shells, not in scripts
+    if [[ $- == *i* ]]; then
+        fastfetch 2>/dev/null || true
     fi
 fi
 BASH_FASTFETCH
+fi
 
-cat >> /mnt/home/$USERNAME/.zshrc << 'ZSH_FASTFETCH'
+# For zsh (if it exists)
+if [ -f /mnt/home/$USERNAME/.zshrc ]; then
+    if ! grep -q "fastfetch" /mnt/home/$USERNAME/.zshrc; then
+        cat >> /mnt/home/$USERNAME/.zshrc << 'ZSH_FASTFETCH'
 
-# Run fastfetch on terminal startup (except in Kitty which handles it)
-if [ -z "$KITTY_WINDOW_ID" ]; then
-    if command -v fastfetch &>/dev/null; then
-        fastfetch
+# Show system info with fastfetch on new terminal (ChrisTitus style)
+if command -v fastfetch &>/dev/null; then
+    # Only run in interactive shells, not in scripts
+    if [[ -o interactive ]]; then
+        fastfetch 2>/dev/null || true
     fi
 fi
 ZSH_FASTFETCH
+    fi
+fi
 
-print_success "Fastfetch configured for all terminals"
+print_success "Fastfetch configured for all terminals (bash, zsh, Kitty)"
+
+# Set Kitty as default terminal for GNOME
+print_info "Setting Kitty as default terminal..."
+arch-chroot /mnt sudo -u $USERNAME bash << 'KITTY_DEFAULT_EOF'
+# Set Kitty as default terminal in GNOME
+if command -v gsettings &>/dev/null; then
+    # Create autostart script to set default terminal on first login
+    mkdir -p ~/.local/bin
+    cat > ~/.local/bin/set-kitty-default.sh << 'INNER_EOF'
+#!/bin/bash
+gsettings set org.gnome.desktop.default-applications.terminal exec 'kitty'
+gsettings set org.gnome.desktop.default-applications.terminal exec-arg ''
+# Remove this script after running once
+rm -f ~/.config/autostart/set-kitty-default.desktop
+rm -f ~/.local/bin/set-kitty-default.sh
+INNER_EOF
+    chmod +x ~/.local/bin/set-kitty-default.sh
+    
+    mkdir -p ~/.config/autostart
+    cat > ~/.config/autostart/set-kitty-default.desktop << 'AUTOSTART_EOF'
+[Desktop Entry]
+Type=Application
+Name=Set Kitty Default Terminal
+Exec=/home/$USERNAME/.local/bin/set-kitty-default.sh
+X-GNOME-Autostart-enabled=true
+NoDisplay=true
+AUTOSTART_EOF
+fi
+KITTY_DEFAULT_EOF
+
+print_success "Kitty will be set as default terminal on first login"
+print_info "Open Kitty: Press Ctrl+Alt+T or search for 'Kitty' in apps"
 
 # Install media players
 print_info "Installing media players..."
