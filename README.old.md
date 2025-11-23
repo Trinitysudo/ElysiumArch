@@ -6,7 +6,7 @@
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Status](https://img.shields.io/badge/status-active-success.svg)
 
-**A fully automated, bare-bones Arch Linux installer optimized for Java development with GNOME desktop**
+**Fully automated Arch Linux installer with GNOME desktop, optimized for development and gaming**
 
 </div>
 
@@ -14,261 +14,86 @@
 
 ## 📋 Overview
 
-**ElysiumArch** is an intelligent, automated Arch Linux installer that sets up a complete development environment with a single command. Inspired by Chris Titus Tech's approach, this installer handles everything from network configuration to desktop theming automatically.
-
-### 🎯 Target System Specs
-- **CPU:** AMD Ryzen 5700X
-- **GPU:** NVIDIA RTX 3060
-- **RAM:** 16GB
-- **Storage:** 500GB NVME SSD
-- **Use Case:** Java Development & Gaming
+**ElysiumArch** is a one-command Arch Linux installer that sets up a complete development environment automatically. Installs base system, GNOME desktop, development tools, and gaming support with intelligent GPU detection (NVIDIA/AMD/Intel/VM).
 
 ---
 
 ## ✨ Features
 
-### 🔧 **Core System**
-- ✅ Full Arch Linux base installation
-- ✅ GRUB bootloader with auto-configuration
-- ✅ Auto disk partitioning with safety confirmations
-- ✅ Multi-display support (optimized for 2 monitors)
-- ✅ Timeshift for system snapshots and backups
+### 🎮 **Universal GPU Support**
+- **NVIDIA** - Proprietary drivers with 32-bit gaming libraries
+- **AMD** - Open source AMDGPU drivers with Vulkan
+- **Intel** - Native mesa drivers with media acceleration
+- **Virtual Machines** - Optimized VM graphics drivers
+- Automatic detection and configuration
+- First-boot installation report with status
 
-### 🖥️ **Desktop Environment**
-- ✅ GNOME (latest) with GDM login manager
-- ✅ Wayland, X11, and XWayland support
-- ✅ Dark theme with blue accent colors
-- ✅ Komorebi live wallpaper engine
-- ✅ Premium GNOME extensions pre-configured
-- ✅ Icon themes and customization
+### 🖥️ **Desktop & System**
+- GNOME desktop with GDM
+- Wayland/X11/XWayland support
+- Dark theme with blue accents
+- GRUB bootloader (UEFI/BIOS)
+- Timeshift backups
+- Multi-monitor support
 
-### 🎮 **Graphics & Performance**
-- ✅ NVIDIA proprietary drivers (optimized for RTX 3060)
-- ✅ Hardware acceleration for Wayland
-- ✅ Vulkan support for gaming
-- ✅ Multi-monitor configuration tools
-
-### 📦 **Package Managers**
-- ✅ **yay** - AUR helper (primary)
-- ✅ **paru** - Alternative AUR helper
-- ✅ **Homebrew** - Cross-platform package manager
-- ✅ **pacman** - Official Arch package manager
-
-### 💻 **Development Tools**
-- ✅ **Visual Studio Code** - Primary IDE
-- ✅ **IntelliJ IDEA Community** - Java IDE
-- ✅ **Java OpenJDK 17 & 21** - Multiple Java versions
-- ✅ **Node.js & npm** - JavaScript runtime
-- ✅ **Git** - Version control
-- ✅ **Docker** (optional)
+### � **Development Tools**
+- Java OpenJDK 17 & 21
+- Visual Studio Code
+- IntelliJ IDEA Community
+- Node.js & npm
+- Git & GitHub CLI
+- Python 3
 
 ### 🌐 **Applications**
-- ✅ **Brave Browser** - Privacy-focused browser
-- ✅ **Discord** - Communication platform
-- ✅ **Steam** - Gaming platform with Proton
-- ✅ **OBS Studio** - Streaming and recording
-- ✅ **Modrinth Launcher** - Minecraft launcher
-- ✅ **Balena Etcher** - USB image writer
-- ✅ **App Store** - GNOME Software Center
+- Brave Browser
+- Discord
+- Steam (gaming-ready)
+- OBS Studio
+- Modrinth Launcher (Minecraft)
 
-### 🛠️ **Utilities**
-- ✅ **Kitty** - Modern GPU-accelerated terminal
-- ✅ **Chris Titus Terminal Config** - Enhanced shell experience
-- ✅ **Kate** - Advanced text editor
-- ✅ **GNOME Tweaks** - System customization
-- ✅ **fastfetch** - System information tool
-- ✅ **7-Zip / p7zip** - Archive management
-- ✅ **unrar** - RAR extraction
-- ✅ **file-roller** - GNOME archive manager
-
-### 🎨 **Theming & Customization**
-- ✅ System-wide dark theme
-- ✅ Blue accent colors
-- ✅ Custom icon packs (Papirus, Tela)
-- ✅ Live animated wallpapers (Komorebi)
-- ✅ Custom login screen
-- ✅ Shell themes and extensions
+### � **Package Managers**
+- yay (AUR helper)
+- paru (alternative AUR)
+- Homebrew
 
 ---
 
-## 🚀 Installation
+## 🚀 Quick Start
 
 ### Prerequisites
-1. Boot into **Arch Linux ISO** (latest)
-2. Ensure you have internet connectivity
-3. Have your NVME drive ready (will be formatted)
+- Boot into Arch Linux ISO
+- Connect to internet (WiFi: `iwctl`)
+- Test connection: `ping archlinux.org`
 
-### Quick Start
+### Installation
 
 ```bash
-# 1. Connect to the internet FIRST (required!)
-#    WiFi users:
-#      iwctl
-#      station wlan0 connect YOUR_SSID
-#      exit
-#    
-#    Ethernet: Should work automatically
-#
-#    Test: ping archlinux.org
-
-# 2. Use the bootstrap script (recommended)
+# Bootstrap script (recommended)
 curl -L https://raw.githubusercontent.com/Trinitysudo/ElysiumArch/main/bootstrap.sh | bash
 
-# Or manually:
-# Download the installer
+# Or manual install
 curl -L https://github.com/Trinitysudo/ElysiumArch/archive/main.tar.gz | tar xz
 cd ElysiumArch-main
-
-# Make the installer executable
-chmod +x install.sh
-
-# Run the installer
-./install.sh
-```
-
-### Alternative: Clone with Git
-
-```bash
-# If git is available on your ISO
-git clone https://github.com/Trinitysudo/ElysiumArch.git
-cd ElysiumArch
 chmod +x install.sh
 ./install.sh
 ```
+
+### Installation Time
+**60-90 minutes** depending on internet speed
 
 ---
 
-## 📖 Installation Process Flow
+## 📖 Installation Phases
 
-The installer follows this automated workflow:
-
-### **Phase 1: Pre-Installation** (5-10 minutes)
-1. **Welcome Screen** - Display banner and system check
-2. **Network Verification**
-   - Verify internet connectivity
-   - Exit if no connection (connect before running installer)
-3. **Localization**
-   - Select language (default: English)
-   - Choose timezone (auto-detected)
-   - Configure keyboard layout
-   - Set hostname and create user account
-4. **Disk Selection**
-   - List available drives
-   - Select installation target (NVME/SSD)
-   - Choose partition scheme:
-     * Option 1: EFI + Root (no swap) - Recommended for 16GB+ RAM
-     * Option 2: EFI + 4GB Swap + Root
-     * Option 3: EFI + Custom Swap Size + Root
-   - Confirm disk wipe (safety prompt)
-
-### **Phase 2: Disk Setup & Base System** (10-20 minutes)
-5. **Partitioning & Formatting**
-   - Create 512MB EFI partition (FAT32)
-   - Create optional swap partition
-   - Create root partition (ext4)
-   - Mount all filesystems
-6. **Install Base System**
-   - Install base packages via pacstrap
-   - Generate fstab
-   - Configure locale, timezone, hostname
-   - Create user account with sudo access
-7. **Install Bootloader**
-   - Install GRUB for UEFI
-   - Configure GRUB settings
-   - Generate GRUB config
-
-### **Phase 3: Graphics & Desktop** (15-20 minutes)
-8. **Install NVIDIA Drivers**
-   - NVIDIA proprietary drivers (RTX 3060 optimized)
-   - Vulkan support
-   - CUDA toolkit
-   - Configure kernel modules and DRM
-9. **Install GNOME Desktop**
-   - Full GNOME desktop + extra packages
-   - GDM display manager
-   - Wayland/X11/XWayland support
-   - PipeWire audio system
-   - Bluetooth support
-   - Fonts and file management tools
-
-### **Phase 4: Package Managers** (5-10 minutes)
-10. **Install AUR Helpers & Package Managers**
-    - yay (primary AUR helper)
-    - paru (alternative AUR helper)
-    - Homebrew (cross-platform package manager)
-    - Configure and optimize all package managers
-
-### **Phase 5: Development Environment** (20-30 minutes)
-11. **Install Development Tools**
-    - Java OpenJDK 17 & 21 (with Maven, Gradle)
-    - Node.js LTS with npm and yarn
-    - Python 3 with pip
-    - Git and GitHub CLI
-    - C/C++ toolchain (gcc, clang, cmake)
-    - Database clients and API tools
-
-### **Phase 6: Applications & Utilities** (30-40 minutes)
-12. **Install Applications**
-    - Visual Studio Code (IDE)
-    - IntelliJ IDEA Community (Java IDE)
-    - Brave Browser
-    - Discord
-    - Steam with Proton and lib32 support
-    - Modrinth Launcher (Minecraft)
-    - OBS Studio
-    - VLC Media Player
-    - LibreOffice Suite
-    - Thunderbird Email
-    - GIMP Image Editor
-    - KeePassXC Password Manager
-    - Balena Etcher
-13. **Install Utilities**
-    - Kitty terminal
-    - Kate text editor
-    - Timeshift backup system
-    - fastfetch system info
-    - htop and btop system monitors
-    - nvtop (NVIDIA GPU monitor)
-    - Archive tools (p7zip, unrar)
-    - Shell enhancements (zsh, fzf, ripgrep, starship)
-
-### **Phase 7: Theming & Customization** (10-15 minutes)
-14. **Apply System Theme**
-    - Dark mode with blue accent colors
-    - Icon themes (Papirus, Tela)
-    - GTK themes (Orchis)
-    - Configure default applications
-    - Font configuration
-15. **Install GNOME Extensions**
-    - Extension Manager (Flatpak)
-    - Core extensions (AppIndicator, Dash to Dock)
-    - Live wallpaper support (Komorebi)
-    - Configure default wallpaper
-28. **Customize Login Screen**
-    - GDM theme modifications
-    - Background image
-
-### **Phase 8: Security Configuration** (5-10 minutes)
-16. **Configure Security Features**
-    - Install and configure UFW firewall (not enabled by default)
-    - Set up Fail2Ban for intrusion prevention
-    - Enable AppArmor security framework
-    - Configure system auditing (auditd)
-    - Set secure kernel parameters
-    - Create security information file for user
-
-### **Phase 9: Post-Installation** (5-10 minutes)
-17. **System Optimization**
-    - Enable multilib repository (32-bit support)
-    - Optimize pacman (parallel downloads, colors, ILoveCandy)
-    - Configure multi-monitor support template
-    - Set default applications (Brave as default browser)
-    - Create welcome message and installation report
-    - Copy installation logs
-    - Clean package cache
-18. **Reboot Prompt**
-    - Display comprehensive installation summary
-    - Prompt for system reboot
+1. **Pre-Installation** - Network check, localization, disk partitioning
+2. **Base System** - Arch base install, GRUB bootloader
+3. **Graphics & Desktop** - Universal GPU drivers, GNOME desktop
+4. **Package Managers** - yay, paru, Homebrew
+5. **Development Tools** - Java, Node.js, IDEs
+6. **Applications** - Browser, Discord, Steam, OBS
+7. **Theming** - Dark theme, icons, GNOME extensions
+8. **Security** - UFW firewall, Fail2Ban, AppArmor
+9. **Post-Install** - System optimization, first-boot report
 
 ---
 
@@ -276,26 +101,30 @@ The installer follows this automated workflow:
 
 ```
 ElysiumArch/
-├── install.sh                      # Main installer script (entry point)
-├── bootstrap.sh                    # Bootstrap script for fresh Arch ISO
-│
-├── modules/                        # Modular installation scripts
-│   ├── 01-network.sh              # Network verification (not configuration)
-│   ├── 02-localization.sh         # Language, timezone, keyboard
-│   ├── 03-disk.sh                 # Disk selection and partitioning
-│   ├── 04-base-system.sh          # Base Arch installation
-│   ├── 05-bootloader.sh           # GRUB installation and config
-│   ├── 06-nvidia-drivers.sh       # NVIDIA driver installation
-│   ├── 07-desktop-environment.sh  # GNOME installation
-│   ├── 08-package-managers.sh     # yay, paru, homebrew
-│   ├── 09-development-tools.sh    # Java, Node, IDEs
-│   ├── 10-applications.sh         # All user applications
-│   ├── 11-utilities.sh            # Terminal, editors, tools
-│   ├── 12-theming.sh              # Themes, icons, wallpapers
-│   ├── 13-gnome-extensions.sh     # GNOME extensions
-│   └── 14-post-install.sh         # Final configuration and cleanup
-│
-├── configs/                        # Configuration files and templates
+├── install.sh              # Main installer
+├── bootstrap.sh            # Bootstrap for Arch ISO
+├── modules/                # 15 installation modules
+│   ├── 01-network.sh      # Network verification
+│   ├── 02-localization.sh # Language, timezone
+│   ├── 03-disk.sh         # Disk partitioning
+│   ├── 04-base-system.sh  # Arch base install
+│   ├── 05-bootloader.sh   # GRUB setup
+│   ├── 06-gpu-drivers.sh  # Universal GPU drivers
+│   ├── 07-desktop-environment.sh
+│   ├── 08-package-managers.sh
+│   ├── 09-development-tools.sh
+│   ├── 10-applications.sh
+│   ├── 11-utilities.sh
+│   ├── 12-theming.sh
+│   ├── 13-extensions.sh
+│   ├── 14-post-install.sh
+│   └── 15-security.sh
+├── scripts/                # Helper scripts
+│   ├── helpers.sh
+│   ├── logger.sh
+│   ├── ui.sh
+│   └── first-boot-report.sh
+└── configs/                # Configuration templates
 │   ├── grub/
 │   │   └── grub.conf              # GRUB bootloader configuration
 │   ├── gnome/

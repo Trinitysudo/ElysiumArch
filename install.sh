@@ -36,6 +36,34 @@ trap 'echo "[TRAP] Script exited at line $LINENO with exit code $?" | tee -a "$D
 source "${SCRIPT_DIR}/scripts/helpers.sh"
 source "${SCRIPT_DIR}/scripts/logger.sh"
 source "${SCRIPT_DIR}/scripts/ui.sh"
+source "${SCRIPT_DIR}/scripts/checkpoint.sh"
+
+# Run module with checkpoint
+run_module() {
+    local module_file="$1"
+    local module_name=$(basename "$module_file" .sh)
+    
+    # Check if module already completed
+    if is_module_completed "$module_name"; then
+        print_info "Skipping $module_name (already completed)"
+        return 0
+    fi
+    
+    # Save checkpoint before running
+    save_checkpoint "$module_name"
+    
+    # Run the module
+    source "$module_file"
+    
+    # Mark as completed if successful
+    if [[ $? -eq 0 ]]; then
+        mark_module_completed "$module_name"
+    else
+        print_error "Module $module_name failed!"
+        print_info "You can restart the installer to resume from this point"
+        exit 1
+    fi
+}
 
 # Main installation function
 main() {
@@ -47,59 +75,73 @@ main() {
     log_info "ElysiumArch Installation Started at $(date)"
     log_info "=========================================="
     
+    # Check for existing installation
+    LAST_CHECKPOINT=$(load_checkpoint)
+    if [[ "$LAST_CHECKPOINT" != "none" ]]; then
+        print_warning "Previous installation detected at: $LAST_CHECKPOINT"
+        if confirm "Resume from last checkpoint?"; then
+            print_info "Resuming installation..."
+        else
+            print_info "Starting fresh installation..."
+            clear_checkpoints
+        fi
+    fi
+    
     # Pre-installation checks
     check_system_requirements
     
-    # Confirm installation
-    echo "[DEBUG] About to call confirm_installation()" | tee -a "$DEBUG_LOG"
-    if ! confirm_installation; then
-        echo "[ERROR] User cancelled installation at main prompt, exiting" | tee -a "$DEBUG_LOG"
-        log_error "Installation cancelled by user"
-        exit 0
+    # Confirm installation (skip if resuming and already confirmed)
+    if [[ "$LAST_CHECKPOINT" == "none" ]]; then
+        echo "[DEBUG] About to call confirm_installation()" | tee -a "$DEBUG_LOG"
+        if ! confirm_installation; then
+            echo "[ERROR] User cancelled installation at main prompt, exiting" | tee -a "$DEBUG_LOG"
+            log_error "Installation cancelled by user"
+            exit 0
+        fi
+        echo "[DEBUG] User confirmed installation, starting Phase 1" | tee -a "$DEBUG_LOG"
     fi
-    echo "[DEBUG] User confirmed installation, starting Phase 1" | tee -a "$DEBUG_LOG"
     
     # Phase 1: Pre-Installation (Network, Localization, Disk)
     print_phase "PHASE 1: PRE-INSTALLATION"
-    source "${SCRIPT_DIR}/modules/01-network.sh"
-    source "${SCRIPT_DIR}/modules/02-localization.sh"
-    source "${SCRIPT_DIR}/modules/03-disk.sh"
+    run_module "${SCRIPT_DIR}/modules/01-network.sh"
+    run_module "${SCRIPT_DIR}/modules/02-localization.sh"
+    run_module "${SCRIPT_DIR}/modules/03-disk.sh"
     
     # Phase 2: Base System Installation
     print_phase "PHASE 2: BASE SYSTEM INSTALLATION"
-    source "${SCRIPT_DIR}/modules/04-base-system.sh"
-    source "${SCRIPT_DIR}/modules/05-bootloader.sh"
+    run_module "${SCRIPT_DIR}/modules/04-base-system.sh"
+    run_module "${SCRIPT_DIR}/modules/05-bootloader.sh"
     
     # Phase 3: Graphics & Desktop Environment
     print_phase "PHASE 3: GRAPHICS & DESKTOP ENVIRONMENT"
-    source "${SCRIPT_DIR}/modules/06-gpu-drivers.sh"
-    source "${SCRIPT_DIR}/modules/07-desktop-environment.sh"
+    run_module "${SCRIPT_DIR}/modules/06-gpu-drivers.sh"
+    run_module "${SCRIPT_DIR}/modules/07-desktop-environment.sh"
     
     # Phase 4: Package Managers
     print_phase "PHASE 4: PACKAGE MANAGERS"
-    source "${SCRIPT_DIR}/modules/08-package-managers.sh"
+    run_module "${SCRIPT_DIR}/modules/08-package-managers.sh"
     
     # Phase 5: Development Tools
     print_phase "PHASE 5: DEVELOPMENT ENVIRONMENT"
-    source "${SCRIPT_DIR}/modules/09-development-tools.sh"
+    run_module "${SCRIPT_DIR}/modules/09-development-tools.sh"
     
     # Phase 6: Applications & Utilities
     print_phase "PHASE 6: APPLICATIONS & UTILITIES"
-    source "${SCRIPT_DIR}/modules/10-applications.sh"
-    source "${SCRIPT_DIR}/modules/11-utilities.sh"
+    run_module "${SCRIPT_DIR}/modules/10-applications.sh"
+    run_module "${SCRIPT_DIR}/modules/11-utilities.sh"
     
     # Phase 7: Theming & Customization
     print_phase "PHASE 7: THEMING & CUSTOMIZATION"
-    source "${SCRIPT_DIR}/modules/12-theming.sh"
-    source "${SCRIPT_DIR}/modules/13-extensions.sh"
+    run_module "${SCRIPT_DIR}/modules/12-theming.sh"
+    run_module "${SCRIPT_DIR}/modules/13-extensions.sh"
     
     # Phase 8: Security Configuration
     print_phase "PHASE 8: SECURITY CONFIGURATION"
-    source "${SCRIPT_DIR}/modules/15-security.sh"
+    run_module "${SCRIPT_DIR}/modules/15-security.sh"
     
     # Phase 9: Post-Installation
     print_phase "PHASE 9: POST-INSTALLATION CONFIGURATION"
-    source "${SCRIPT_DIR}/modules/14-post-install.sh"
+    run_module "${SCRIPT_DIR}/modules/14-post-install.sh"
     
     # Installation complete
     print_success "\n=========================================="
