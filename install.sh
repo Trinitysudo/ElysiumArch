@@ -141,10 +141,8 @@ check_system_requirements() {
     # Check if UEFI mode
     if [[ ! -d /sys/firmware/efi ]]; then
         print_warning "UEFI mode not detected!"
-        print_warning "This installer is designed for UEFI systems."
-        if ! confirm "Continue anyway?"; then
-            exit 1
-        fi
+        print_info "This installer is optimized for UEFI but will work with BIOS/Legacy systems."
+        print_info "Continuing with installation..."
     fi
     
     # Check internet connection
