@@ -26,9 +26,13 @@ if [[ ${#DISKS[@]} -eq 1 ]]; then
     DISK="/dev/${DISKS[0]}"
     print_info "Only one disk detected: $DISK"
     lsblk "$DISK"
-    if ! confirm "Use this disk for installation?"; then
+    set +e  # Disable exit on error for confirm
+    confirm "Use this disk for installation?"
+    local confirm_result=$?
+    set -e  # Re-enable exit on error
+    if [[ $confirm_result -ne 0 ]]; then
         print_error "Installation cancelled"
-        exit 1
+        exit 0
     fi
 else
     # Multiple disks, let user choose
@@ -104,10 +108,14 @@ print_warning "Scheme: $([ "$USE_SWAP" = true ] && echo "EFI + Swap + Root" || e
 print_warning "ALL data will be permanently deleted!"
 echo ""
 
-if ! confirm "Proceed with installation?"; then
+set +e  # Disable exit on error for confirm
+confirm "Proceed with installation?"
+local confirm_result=$?
+set -e  # Re-enable exit on error
+if [[ $confirm_result -ne 0 ]]; then
     print_error "Installation cancelled by user"
     log_error "Disk: User cancelled installation"
-    exit 1
+    exit 0
 fi
 
 # Export disk variable

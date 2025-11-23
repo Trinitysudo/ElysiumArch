@@ -37,7 +37,11 @@ main() {
     check_system_requirements
     
     # Confirm installation
-    if ! confirm_installation; then
+    set +e  # Disable exit on error for confirm
+    confirm_installation
+    local confirm_result=$?
+    set -e  # Re-enable exit on error
+    if [[ $confirm_result -ne 0 ]]; then
         log_error "Installation cancelled by user"
         exit 0
     fi
