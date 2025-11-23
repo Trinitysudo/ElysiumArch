@@ -16,7 +16,11 @@ LOG_FILE="${SCRIPT_DIR}/logs/install.log"
 
 # Create log file
 mkdir -p "${SCRIPT_DIR}/logs"
+# Redirect output to log file while preserving stdin
+exec 3>&1 4>&2
 exec > >(tee -a "$LOG_FILE") 2>&1
+# Restore stdin to ensure interactive prompts work
+exec 0</dev/tty || exec 0<&1
 
 # Initialize debug log - output to both file and screen
 DEBUG_LOG="/tmp/elysium-debug.log"
