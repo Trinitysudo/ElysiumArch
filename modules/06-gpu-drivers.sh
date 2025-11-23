@@ -27,6 +27,9 @@ GPU_NVIDIA=$(lspci | grep -i nvidia | grep -i vga)
 GPU_AMD=$(lspci | grep -i amd | grep -i vga)
 GPU_INTEL=$(lspci | grep -i intel | grep -i vga)
 
+# Create status directory
+mkdir -p /mnt/var/log/elysium
+
 # Display detected GPUs
 print_info "GPU Detection Results:"
 if [[ -n "$GPU_NVIDIA" ]]; then
