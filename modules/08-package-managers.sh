@@ -12,35 +12,35 @@ arch-chroot /mnt pacman -S --noconfirm --needed base-devel git
 # Install yay as user
 print_info "Installing yay (AUR helper)..."
 
-# Make sure PKGBUILD directory is clean
-arch-chroot /mnt rm -rf /tmp/yay
+# Create build directory in user's home
+arch-chroot /mnt mkdir -p /home/$USERNAME/aur-build
+arch-chroot /mnt chown -R $USERNAME:$USERNAME /home/$USERNAME/aur-build
 
-# Clone and build yay as user, then install as root
-arch-chroot /mnt su - $USERNAME -c "
-set -e
-cd /tmp
-echo 'Cloning yay repository...'
-git clone https://aur.archlinux.org/yay.git
-cd yay
-echo 'Building yay package...'
-makepkg -s --noconfirm --needed
-echo 'Yay package built successfully'
-"
+# Clone yay repository
+print_info "Cloning yay repository..."
+arch-chroot /mnt runuser -u $USERNAME -- bash -c "cd /home/$USERNAME/aur-build && git clone https://aur.archlinux.org/yay.git"
+
+# Build yay package as user
+print_info "Building yay package..."
+arch-chroot /mnt runuser -u $USERNAME -- bash -c "cd /home/$USERNAME/aur-build/yay && makepkg -s --noconfirm --needed"
 
 YAY_BUILD_EXIT=$?
 
 if [[ $YAY_BUILD_EXIT -ne 0 ]]; then
     print_error "Failed to build yay package (exit code: $YAY_BUILD_EXIT)"
     log_error "Package Managers: yay build failed"
-    arch-chroot /mnt rm -rf /tmp/yay
+    arch-chroot /mnt rm -rf /home/$USERNAME/aur-build
     exit 1
 fi
 
 # Install the built package with pacman
 print_info "Installing yay package..."
-arch-chroot /mnt pacman -U --noconfirm /tmp/yay/*.pkg.tar.zst
+arch-chroot /mnt pacman -U --noconfirm /home/$USERNAME/aur-build/yay/*.pkg.tar.zst
 
 YAY_EXIT_CODE=$?
+
+# Cleanup
+arch-chroot /mnt rm -rf /home/$USERNAME/aur-build
 
 # Cleanup
 arch-chroot /mnt rm -rf /tmp/yay
@@ -68,38 +68,35 @@ arch-chroot /mnt pacman -S --noconfirm --needed rust
 # Install paru as user
 print_info "Installing paru (alternative AUR helper)..."
 
-# Make sure PKGBUILD directory is clean
-arch-chroot /mnt rm -rf /tmp/paru
+# Create build directory in user's home (reuse same directory)
+arch-chroot /mnt mkdir -p /home/$USERNAME/aur-build
+arch-chroot /mnt chown -R $USERNAME:$USERNAME /home/$USERNAME/aur-build
 
-# Clone and build paru as user, then install as root
-arch-chroot /mnt su - $USERNAME -c "
-set -e
-cd /tmp
-echo 'Cloning paru repository...'
-git clone https://aur.archlinux.org/paru.git
-cd paru
-echo 'Building paru package...'
-makepkg -s --noconfirm --needed
-echo 'Paru package built successfully'
-" 2>&1
+# Clone paru repository
+print_info "Cloning paru repository..."
+arch-chroot /mnt runuser -u $USERNAME -- bash -c "cd /home/$USERNAME/aur-build && git clone https://aur.archlinux.org/paru.git"
+
+# Build paru package as user
+print_info "Building paru package..."
+arch-chroot /mnt runuser -u $USERNAME -- bash -c "cd /home/$USERNAME/aur-build/paru && makepkg -s --noconfirm --needed"
 
 PARU_BUILD_EXIT=$?
 
 if [[ $PARU_BUILD_EXIT -ne 0 ]]; then
     print_error "Failed to build paru package (exit code: $PARU_BUILD_EXIT)"
     log_error "Package Managers: paru build failed"
-    arch-chroot /mnt rm -rf /tmp/paru
+    arch-chroot /mnt rm -rf /home/$USERNAME/aur-build
     exit 1
 fi
 
 # Install the built package with pacman
 print_info "Installing paru package..."
-arch-chroot /mnt pacman -U --noconfirm /tmp/paru/*.pkg.tar.zst
+arch-chroot /mnt pacman -U --noconfirm /home/$USERNAME/aur-build/paru/*.pkg.tar.zst
 
 PARU_EXIT_CODE=$?
 
 # Cleanup
-arch-chroot /mnt rm -rf /tmp/paru
+arch-chroot /mnt rm -rf /home/$USERNAME/aur-build
 
 if [[ $PARU_EXIT_CODE -eq 0 ]]; then
     print_success "paru installed"
