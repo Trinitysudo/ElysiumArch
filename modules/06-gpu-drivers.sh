@@ -19,7 +19,9 @@ if systemd-detect-virt --quiet; then
     
     mkdir -p /mnt/var/log/elysium
     echo "VM" > /mnt/var/log/elysium/gpu_type
-    exit 0
+    echo "VM_SUCCESS" >> /mnt/var/log/elysium/install_status
+    log_success "GPU driver installation completed (VM)"
+    return 0
 fi
 
 # Detect GPU type
@@ -85,6 +87,7 @@ EOF
         # Add kernel parameters
         if grep -q "GRUB_CMDLINE_LINUX_DEFAULT" /mnt/etc/default/grub; then
             sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="\(.*\)"/GRUB_CMDLINE_LINUX_DEFAULT="\1 nvidia-drm.modeset=1"/' /mnt/etc/default/grub
+            arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg
         fi
         
         # Create Xorg config
@@ -102,6 +105,7 @@ EndSection
 NVIDIAEOF
         
         # Wayland compatibility
+        mkdir -p /mnt/etc/modprobe.d/
         cat > /mnt/etc/modprobe.d/nvidia.conf << 'EOF'
 options nvidia_drm modeset=1
 options nvidia NVreg_PreserveVideoMemoryAllocations=1
@@ -119,6 +123,18 @@ EOF
     
 elif [[ -n "$GPU_AMD" ]]; then
     print_info "Installing AMD drivers..."
+    
+    # Enable multilib repository for 32-bit support
+    print_info "Enabling multilib repository for 32-bit libraries..."
+    if ! grep -q "^\[multilib\]" /mnt/etc/pacman.conf; then
+        cat >> /mnt/etc/pacman.conf << 'EOF'
+
+[multilib]
+Include = /etc/pacman.d/mirrorlist
+EOF
+        print_success "Multilib repository enabled"
+        arch-chroot /mnt pacman -Sy
+    fi
     
     # AMD drivers are in the standard repos and work well
     arch-chroot /mnt pacman -S --noconfirm --needed \
@@ -147,6 +163,7 @@ elif [[ -n "$GPU_AMD" ]]; then
         # Add kernel parameters for AMD
         if grep -q "GRUB_CMDLINE_LINUX_DEFAULT" /mnt/etc/default/grub; then
             sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="\(.*\)"/GRUB_CMDLINE_LINUX_DEFAULT="\1 amdgpu.dc=1"/' /mnt/etc/default/grub
+            arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg
         fi
         
         print_success "AMD configuration complete"
@@ -159,6 +176,18 @@ elif [[ -n "$GPU_AMD" ]]; then
     
 elif [[ -n "$GPU_INTEL" ]]; then
     print_info "Installing Intel drivers..."
+    
+    # Enable multilib repository for 32-bit support
+    print_info "Enabling multilib repository for 32-bit libraries..."
+    if ! grep -q "^\[multilib\]" /mnt/etc/pacman.conf; then
+        cat >> /mnt/etc/pacman.conf << 'EOF'
+
+[multilib]
+Include = /etc/pacman.d/mirrorlist
+EOF
+        print_success "Multilib repository enabled"
+        arch-chroot /mnt pacman -Sy
+    fi
     
     # Intel drivers
     arch-chroot /mnt pacman -S --noconfirm --needed \
