@@ -54,9 +54,15 @@ print_success "GIMP installed"
 # Install AUR applications (require yay)
 print_info "Installing AUR applications..."
 
+# Verify yay is available
+if ! arch-chroot /mnt su - $USERNAME -c "command -v yay" &>/dev/null; then
+    print_error "yay not found! Skipping AUR applications..."
+    return 1
+fi
+
 # Install Visual Studio Code
 print_info "Installing Visual Studio Code..."
-arch-chroot /mnt su - $USERNAME -c "yay -S --noconfirm visual-studio-code-bin"
+arch-chroot /mnt su - $USERNAME -c "yay -S --noconfirm --needed visual-studio-code-bin"
 
 if [[ $? -eq 0 ]]; then
     print_success "VS Code installed"
@@ -66,7 +72,7 @@ fi
 
 # Install IntelliJ IDEA Community
 print_info "Installing IntelliJ IDEA Community..."
-arch-chroot /mnt su - $USERNAME -c "yay -S --noconfirm intellij-idea-community-edition"
+arch-chroot /mnt su - $USERNAME -c "yay -S --noconfirm --needed intellij-idea-community-edition"
 
 if [[ $? -eq 0 ]]; then
     print_success "IntelliJ IDEA installed"
@@ -76,7 +82,7 @@ fi
 
 # Install Brave Browser
 print_info "Installing Brave Browser..."
-arch-chroot /mnt su - $USERNAME -c "yay -S --noconfirm brave-bin"
+arch-chroot /mnt su - $USERNAME -c "yay -S --noconfirm --needed brave-bin"
 
 if [[ $? -eq 0 ]]; then
     print_success "Brave Browser installed"
@@ -86,7 +92,7 @@ fi
 
 # Install Discord
 print_info "Installing Discord..."
-arch-chroot /mnt su - $USERNAME -c "yay -S --noconfirm discord"
+arch-chroot /mnt su - $USERNAME -c "yay -S --noconfirm --needed discord"
 
 if [[ $? -eq 0 ]]; then
     print_success "Discord installed"

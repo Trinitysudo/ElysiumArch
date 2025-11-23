@@ -29,6 +29,10 @@ else
     exit 1
 fi
 
+# Install rust (required for paru)
+print_info "Installing Rust (required for paru)..."
+arch-chroot /mnt pacman -S --noconfirm --needed rust
+
 # Install paru as user
 print_info "Installing paru (alternative AUR helper)..."
 arch-chroot /mnt su - $USERNAME -c "
@@ -52,6 +56,16 @@ fi
 print_info "Configuring yay..."
 arch-chroot /mnt su - $USERNAME -c "yay -Y --gendb && yay -Y --devel --save"
 
+# Verify yay is working
+print_info "Verifying yay installation..."
+arch-chroot /mnt su - $USERNAME -c "yay --version"
+if [[ $? -eq 0 ]]; then
+    print_success "yay is working correctly"
+else
+    print_error "yay verification failed"
+    exit 1
+fi
+
 # Install Homebrew (optional)
 print_info "Installing Homebrew on Linux..."
 
@@ -61,21 +75,12 @@ arch-chroot /mnt pacman -S --noconfirm --needed \
     make \
     curl
 
-# Create Homebrew installation script
-cat > /mnt/tmp/install-brew.sh << 'BREWEOF'
-#!/bin/bash
-# Install Homebrew as non-root user
-NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
-# Add Homebrew to PATH
-echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ~/.bashrc
-echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ~/.zshrc
-BREWEOF
-
-chmod +x /mnt/tmp/install-brew.sh
-
 # Install Homebrew as user
-arch-chroot /mnt su - $USERNAME -c "/tmp/install-brew.sh"
+arch-chroot /mnt su - $USERNAME -c '
+NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+echo '\''eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"'\'' >> ~/.bashrc
+echo '\''eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"'\'' >> ~/.zshrc
+'
 
 if [[ $? -eq 0 ]]; then
     print_success "Homebrew installed"
@@ -84,9 +89,6 @@ else
     print_warning "Failed to install Homebrew (optional)"
     log_warning "Package Managers: Homebrew installation failed"
 fi
-
-# Cleanup
-rm -f /mnt/tmp/install-yay.sh /mnt/tmp/install-paru.sh /mnt/tmp/install-brew.sh
 
 print_success "Package managers installed"
 log_success "Package Managers: All package managers installed"

@@ -18,19 +18,20 @@ arch-chroot /mnt pacman -S --noconfirm --needed kate
 
 print_success "Kate installed"
 
-# Install Timeshift
+# Install Timeshift (from AUR using yay)
 print_info "Installing Timeshift..."
-arch-chroot /mnt su - $USERNAME -c "yay -S --noconfirm timeshift"
+arch-chroot /mnt su - $USERNAME -c "yay -S --noconfirm --needed timeshift"
 
 if [[ $? -eq 0 ]]; then
     print_success "Timeshift installed"
 else
-    print_warning "Failed to install Timeshift (optional)"
+    print_warning "Failed to install Timeshift, trying with paru..."
+    arch-chroot /mnt su - $USERNAME -c "paru -S --noconfirm --needed timeshift" 2>/dev/null || print_warning "Timeshift installation failed (optional)"
 fi
 
-# Install fastfetch
+# Install fastfetch (available in official repos)
 print_info "Installing fastfetch..."
-arch-chroot /mnt su - $USERNAME -c "yay -S --noconfirm fastfetch"
+arch-chroot /mnt pacman -S --noconfirm --needed fastfetch
 
 if [[ $? -eq 0 ]]; then
     print_success "fastfetch installed"
