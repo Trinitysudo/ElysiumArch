@@ -85,15 +85,30 @@ arch-chroot /mnt pacman -S --noconfirm --needed rust
 print_info "Installing paru (optional alternative AUR helper)..."
 if arch-chroot /mnt test -x /usr/bin/paru; then
     print_info "paru already installed – skipping"
+elif [[ -n "$ELYSIUM_SKIP_PARU" ]]; then
+    print_info "ELYSIUM_SKIP_PARU set – skipping paru install"
 else
-    if run_as_user "mkdir -p ~/aur-build && cd ~/aur-build && git clone https://aur.archlinux.org/paru.git" && \
-       run_as_user "cd ~/aur-build/paru && makepkg -si --noconfirm --needed"; then
-        print_success "paru installed"
-        log_success "Package Managers: paru installed"
+    run_as_user "mkdir -p ~/aur-build && rm -rf ~/aur-build/paru-bin ~/aur-build/paru"
+    PARU_START=$SECONDS
+    print_info "Attempting paru-bin (precompiled) first..."
+    if run_as_user "cd ~/aur-build && git clone https://aur.archlinux.org/paru-bin.git" && \
+       run_as_user "cd ~/aur-build/paru-bin && makepkg -si --noconfirm --needed"; then
+        print_success "paru-bin installed"
+        log_success "Package Managers: paru-bin installed"
     else
-        print_warning "paru installation failed (non-critical)"
-        log_warning "Package Managers: paru installation failed"
+        print_warning "paru-bin failed – falling back to source build (this can take several minutes on first Rust compile)"
+        run_as_user "rm -rf ~/aur-build/paru-bin"
+        if run_as_user "cd ~/aur-build && git clone https://aur.archlinux.org/paru.git" && \
+           run_as_user "cd ~/aur-build/paru && makepkg -si --noconfirm --needed"; then
+            print_success "paru (source) installed"
+            log_success "Package Managers: paru (source) installed"
+        else
+            print_warning "paru installation failed (optional)"
+            log_warning "Package Managers: paru installation failed"
+        fi
     fi
+    PARU_DURATION=$(( SECONDS - PARU_START ))
+    print_info "paru build/install duration: ${PARU_DURATION}s"
     run_as_user "rm -rf ~/aur-build"
 fi
 
