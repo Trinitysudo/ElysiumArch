@@ -63,12 +63,38 @@ fi
 
 # Final yay verification (ensure not root)
 if arch-chroot /mnt test -x /usr/bin/yay; then
-    YAY_VERSION=$(arch-chroot /mnt runuser -u "$USERNAME" -- yay --version 2>/dev/null || true)
+    print_info "Verifying yay (multi-step)..."
+    # Show ownership & permissions
+    arch-chroot /mnt ls -l /usr/bin/yay || true
+    # Capture user context info
+    arch-chroot /mnt runuser -u "$USERNAME" -- /usr/bin/id -u > /tmp/yay_uid.$$ 2>/dev/null || true
+    YAY_UID=$(arch-chroot /mnt cat /tmp/yay_uid.$$ 2>/dev/null || echo "?")
+    print_info "User UID inside chroot: $YAY_UID (should be > 0)"
+    # Try version with minimal clean environment
+    YAY_VERSION=$(arch-chroot /mnt runuser -u "$USERNAME" -- /usr/bin/env -i HOME=/home/$USERNAME USER=$USERNAME PATH=/usr/bin:/bin /usr/bin/yay --version 2>/dev/null || true)
+    if [[ -z "$YAY_VERSION" ]]; then
+        print_warning "Clean env version check failed – retrying with default environment"
+        YAY_VERSION=$(arch-chroot /mnt runuser -u "$USERNAME" -- /usr/bin/yay --version 2>/dev/null || true)
+    fi
+    if [[ -z "$YAY_VERSION" ]]; then
+        print_warning "Fallback runuser failed – retrying with sudo -u"
+        YAY_VERSION=$(arch-chroot /mnt sudo -u "$USERNAME" /usr/bin/yay --version 2>/dev/null || true)
+    fi
+    if [[ -z "$YAY_VERSION" ]]; then
+        print_warning "sudo -u failed – final fallback running under root (will warn)"
+        YAY_VERSION=$(arch-chroot /mnt /usr/bin/yay --version 2>/dev/null || true)
+        if [[ -n "$YAY_VERSION" ]]; then
+            print_warning "Version only obtainable under root – build ran but user context is wrong."
+        fi
+    fi
     if [[ -n "$YAY_VERSION" ]]; then
         print_success "yay installed successfully (version: $YAY_VERSION)"
         log_success "Package Managers: yay installed: $YAY_VERSION"
     else
-        print_error "yay binary present but version check failed"
+        print_error "yay binary present but ALL version checks failed"
+        print_info "Diagnostics: showing file type & dynamic links"
+        arch-chroot /mnt file /usr/bin/yay || true
+        arch-chroot /mnt ldd /usr/bin/yay || true
         log_error "Package Managers: yay version verification failed"
         exit 1
     fi
