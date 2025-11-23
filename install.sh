@@ -8,7 +8,7 @@
 # License: MIT
 #
 
-set -e  # Exit on error
+# Note: set -e removed to allow proper error handling in modules
 
 # Script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -37,11 +37,7 @@ main() {
     check_system_requirements
     
     # Confirm installation
-    set +e  # Disable exit on error for confirm
-    confirm_installation
-    confirm_result=$?
-    set -e  # Re-enable exit on error
-    if [[ $confirm_result -ne 0 ]]; then
+    if ! confirm_installation; then
         log_error "Installation cancelled by user"
         exit 0
     fi
