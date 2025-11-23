@@ -52,9 +52,13 @@ confirm() {
                 echo "[DEBUG] Returning 0 (yes)" | tee -a /tmp/elysium-debug.log
                 return 0
                 ;;
-            [nN][oO]|[nN]|"")
+            [nN][oO]|[nN])
                 echo "[DEBUG] Returning 1 (no/cancel)" | tee -a /tmp/elysium-debug.log
                 return 1
+                ;;
+            "")
+                echo "[DEBUG] Empty input, looping again" | tee -a /tmp/elysium-debug.log
+                print_error "Please answer yes or no."
                 ;;
             *)
                 echo "[DEBUG] Invalid input '$response', looping again" | tee -a /tmp/elysium-debug.log
