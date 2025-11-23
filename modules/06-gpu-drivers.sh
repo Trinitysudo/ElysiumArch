@@ -102,10 +102,10 @@ EndSection
 NVIDIAEOF
         
         # Wayland compatibility
-        cat > /mnt/etc/modprobe.d/nvidia.conf << 'NVIDIAMODEOF'
+        cat > /mnt/etc/modprobe.d/nvidia.conf << 'EOF'
 options nvidia_drm modeset=1
 options nvidia NVreg_PreserveVideoMemoryAllocations=1
-NVIDIAMODEOF
+EOF
         
         arch-chroot /mnt systemctl enable nvidia-persistenced
         print_success "NVIDIA configuration complete"
