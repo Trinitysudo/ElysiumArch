@@ -43,36 +43,6 @@ arch-chroot /mnt pacman -S --noconfirm --needed thunderbird
 print_success "Thunderbird installed"
 
 # Install image editing
-print_info "Installing GIMP..."
-arch-chroot /mnt pacman -S --noconfirm --needed gimp
-
-print_success "GIMP installed"
-
-# Install password manager
-print_info "Installing KeePassXC..."
-arch-chroot /mnt pacman -S --noconfirm --needed keepassxc
-
-print_success "KeePassXC installed"
-
-# Install file sync
-print_info "Installing Syncthing..."
-arch-chroot /mnt pacman -S --noconfirm --needed syncthing
-
-print_success "Syncthing installed"
-
-# Install torrent client
-print_info "Installing Transmission..."
-arch-chroot /mnt pacman -S --noconfirm --needed transmission-gtk
-
-print_success "Transmission installed"
-
-# Install AUR applications (require yay)
-print_info "Installing AUR applications..."
-
-# Install Visual Studio Code
-print_info "Installing Visual Studio Code..."
-arch-chroot /mnt su - $USERNAME -c "yay -S --noconfirm visual-studio-code-bin"
-
 if [[ $? -eq 0 ]]; then
     print_success "VS Code installed"
 else

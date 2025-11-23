@@ -74,7 +74,7 @@ main() {
     # Phase 7: Theming & Customization
     print_phase "PHASE 7: THEMING & CUSTOMIZATION"
     source "${SCRIPT_DIR}/modules/12-theming.sh"
-    source "${SCRIPT_DIR}/modules/13-gnome-extensions.sh"
+    source "${SCRIPT_DIR}/modules/13-extensions.sh"
     
     # Phase 8: Security Configuration
     print_phase "PHASE 8: SECURITY CONFIGURATION"
