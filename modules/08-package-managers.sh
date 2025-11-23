@@ -9,22 +9,37 @@ print_info "Installing AUR helpers and package managers..."
 # Install required build tooling
 arch-chroot /mnt pacman -S --noconfirm --needed base-devel git util-linux sudo
 
+# Load saved configuration if not already loaded
+if [[ -z "$USERNAME" ]] && [[ -f /tmp/elysium-config/user.conf ]]; then
+    source /tmp/elysium-config/user.conf
+fi
+
+# If still not set, prompt now
+if [[ -z "$USERNAME" ]]; then
+    print_warning "User configuration not found. Please enter details:"
+    read -p "Username: " USERNAME
+    read -sp "Password: " USER_PASSWORD
+    echo ""
+    # Save for other modules
+    mkdir -p /tmp/elysium-config
+    cat > /tmp/elysium-config/user.conf << EOF
+USERNAME="$USERNAME"
+USER_PASSWORD="$USER_PASSWORD"
+EOF
+    export USERNAME USER_PASSWORD
+fi
+
 # Verify user exists
 print_info "Verifying user account: $USERNAME"
 if ! arch-chroot /mnt id "$USERNAME" &>/dev/null; then
     print_error "User $USERNAME does not exist!"
-    print_error "Module 04 (base-system) must have failed or /mnt is not mounted correctly."
     print_info "Checking /mnt mount..."
     if ! mountpoint -q /mnt; then
         print_error "/mnt is not mounted! Cannot proceed."
         print_info "Run: mount /dev/sdXY /mnt (replace XY with your root partition)"
         exit 1
     fi
-    print_info "Attempting to create user $USERNAME..."
-    if [[ -z "$USER_PASSWORD" ]]; then
-        print_error "USER_PASSWORD not set in config. Cannot create user."
-        exit 1
-    fi
+    print_info "Creating user $USERNAME..."
     arch-chroot /mnt useradd -m -G wheel,audio,video,storage,optical -s /bin/bash "$USERNAME"
     echo "$USERNAME:$USER_PASSWORD" | arch-chroot /mnt chpasswd
     print_success "User $USERNAME created"
