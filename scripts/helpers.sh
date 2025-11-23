@@ -41,16 +41,23 @@ confirm() {
     local prompt="$1"
     local response
     
+    echo "[DEBUG] confirm() called with: '$prompt'" >> /tmp/elysium-debug.log
+    
     while true; do
         read -p "$(echo -e ${YELLOW}[?]${NC}) $prompt [y/N]: " response
+        echo "[DEBUG] User response: '$response'" >> /tmp/elysium-debug.log
+        
         case "$response" in
             [yY][eE][sS]|[yY]) 
+                echo "[DEBUG] Returning 0 (yes)" >> /tmp/elysium-debug.log
                 return 0
                 ;;
             [nN][oO]|[nN]|"")
+                echo "[DEBUG] Returning 1 (no/cancel)" >> /tmp/elysium-debug.log
                 return 1
                 ;;
             *)
+                echo "[DEBUG] Invalid input, looping again" >> /tmp/elysium-debug.log
                 print_error "Please answer yes or no."
                 ;;
         esac

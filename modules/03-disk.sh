@@ -26,10 +26,13 @@ if [[ ${#DISKS[@]} -eq 1 ]]; then
     DISK="/dev/${DISKS[0]}"
     print_info "Only one disk detected: $DISK"
     lsblk "$DISK"
+    echo "[DEBUG] About to call confirm for disk selection" >> /tmp/elysium-debug.log
     if ! confirm "Use this disk for installation?"; then
+        echo "[ERROR] User cancelled disk selection, exiting script" >> /tmp/elysium-debug.log
         print_error "Installation cancelled"
         exit 0
     fi
+    echo "[DEBUG] User confirmed disk selection, continuing" >> /tmp/elysium-debug.log
 else
     # Multiple disks, let user choose
     print_info "Select installation disk:"
@@ -104,11 +107,14 @@ print_warning "Scheme: $([ "$USE_SWAP" = true ] && echo "EFI + Swap + Root" || e
 print_warning "ALL data will be permanently deleted!"
 echo ""
 
+echo "[DEBUG] About to call final confirmation before wiping disk" >> /tmp/elysium-debug.log
 if ! confirm "Proceed with installation?"; then
+    echo "[ERROR] User cancelled final confirmation, exiting script" >> /tmp/elysium-debug.log
     print_error "Installation cancelled by user"
     log_error "Disk: User cancelled installation"
     exit 0
 fi
+echo "[DEBUG] User confirmed final confirmation, proceeding with disk wipe" >> /tmp/elysium-debug.log
 
 # Export disk variable
 export INSTALL_DISK="$DISK"
