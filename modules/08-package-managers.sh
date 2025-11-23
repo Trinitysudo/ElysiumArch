@@ -9,7 +9,7 @@ print_info "Installing AUR helpers and package managers..."
 # Install base-devel for building packages
 arch-chroot /mnt pacman -S --noconfirm --needed base-devel git
 
-# Install yay as user
+# Install yay-bin as user (precompiled binary - much faster)
 print_info "Installing yay (AUR helper)..."
 
 # Create build directory in user's home and set ownership
@@ -20,9 +20,9 @@ arch-chroot /mnt chown -R $USERNAME:$USERNAME /home/$USERNAME/aur-build
 cat > /mnt/tmp/build-yay.sh << 'EOFBUILD'
 #!/bin/bash
 cd /home/$USERNAME/aur-build
-git clone https://aur.archlinux.org/yay.git
-cd yay
-makepkg -s --noconfirm --needed
+git clone https://aur.archlinux.org/yay-bin.git
+cd yay-bin
+makepkg -si --noconfirm --needed
 EOFBUILD
 
 # Replace $USERNAME in the script
@@ -40,34 +40,22 @@ YAY_BUILD_EXIT=$?
 rm -f /mnt/tmp/build-yay.sh
 
 if [[ $YAY_BUILD_EXIT -ne 0 ]]; then
-    print_error "Failed to build yay package (exit code: $YAY_BUILD_EXIT)"
-    log_error "Package Managers: yay build failed"
+    print_error "Failed to install yay (exit code: $YAY_BUILD_EXIT)"
+    log_error "Package Managers: yay installation failed"
     arch-chroot /mnt rm -rf /home/$USERNAME/aur-build
     exit 1
 fi
 
-# Install the built package with pacman
-print_info "Installing yay package..."
-arch-chroot /mnt pacman -U --noconfirm /home/$USERNAME/aur-build/yay/*.pkg.tar*
-
-YAY_EXIT_CODE=$?
-
 # Cleanup
 arch-chroot /mnt rm -rf /home/$USERNAME/aur-build
 
-if [[ $YAY_EXIT_CODE -eq 0 ]]; then
-    # Verify yay binary exists
-    if arch-chroot /mnt test -f /usr/bin/yay; then
-        print_success "yay installed successfully"
-        log_success "Package Managers: yay installed"
-    else
-        print_error "yay binary not found after installation"
-        log_error "Package Managers: yay binary missing"
-        exit 1
-    fi
+# Verify yay binary exists
+if arch-chroot /mnt test -f /usr/bin/yay; then
+    print_success "yay installed successfully"
+    log_success "Package Managers: yay installed"
 else
-    print_error "Failed to build yay (exit code: $YAY_EXIT_CODE)"
-    log_error "Package Managers: yay installation failed"
+    print_error "yay binary not found after installation"
+    log_error "Package Managers: yay binary missing"
     exit 1
 fi
 
@@ -106,28 +94,15 @@ PARU_BUILD_EXIT=$?
 rm -f /mnt/tmp/build-paru.sh
 
 if [[ $PARU_BUILD_EXIT -ne 0 ]]; then
-    print_error "Failed to build paru package (exit code: $PARU_BUILD_EXIT)"
-    log_error "Package Managers: paru build failed"
-    arch-chroot /mnt rm -rf /home/$USERNAME/aur-build
-    exit 1
+    print_warning "Failed to install paru (optional, exit code: $PARU_BUILD_EXIT)"
+    log_warning "Package Managers: paru installation failed"
+else
+    print_success "paru installed"
+    log_success "Package Managers: paru installed"
 fi
-
-# Install the built package with pacman
-print_info "Installing paru package..."
-arch-chroot /mnt pacman -U --noconfirm /home/$USERNAME/aur-build/paru/*.pkg.tar*
-
-PARU_EXIT_CODE=$?
 
 # Cleanup
 arch-chroot /mnt rm -rf /home/$USERNAME/aur-build
-
-if [[ $PARU_EXIT_CODE -eq 0 ]]; then
-    print_success "paru installed"
-    log_success "Package Managers: paru installed"
-else
-    print_warning "Failed to install paru (optional)"
-    log_warning "Package Managers: paru installation failed"
-fi
 
 # Configure yay
 print_info "Configuring yay..."
