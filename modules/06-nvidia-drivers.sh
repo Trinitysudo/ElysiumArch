@@ -6,6 +6,21 @@
 
 print_info "Installing NVIDIA drivers for RTX 3060..."
 
+# Enable multilib repository for 32-bit support
+print_info "Enabling multilib repository for 32-bit NVIDIA libraries..."
+if ! grep -q "^\[multilib\]" /mnt/etc/pacman.conf; then
+    cat >> /mnt/etc/pacman.conf << 'EOF'
+
+[multilib]
+Include = /etc/pacman.d/mirrorlist
+EOF
+    print_success "Multilib repository enabled"
+    # Update package database
+    arch-chroot /mnt pacman -Sy
+else
+    print_info "Multilib already enabled"
+fi
+
 # Install NVIDIA drivers and utilities
 print_info "Installing NVIDIA packages..."
 arch-chroot /mnt pacman -S --noconfirm --needed \
@@ -13,9 +28,7 @@ arch-chroot /mnt pacman -S --noconfirm --needed \
     nvidia-utils \
     nvidia-settings \
     lib32-nvidia-utils \
-    opencl-nvidia \
-    cuda \
-    cudnn
+    opencl-nvidia
 
 if [[ $? -ne 0 ]]; then
     print_error "Failed to install NVIDIA drivers"
@@ -24,7 +37,11 @@ if [[ $? -ne 0 ]]; then
 fi
 
 print_success "NVIDIA drivers installed"
-log_success "NVIDIA: Drivers and CUDA installed"
+log_success "NVIDIA: Drivers installed"
+
+# Install CUDA (optional, for development)
+print_info "Installing CUDA toolkit (optional)..."
+arch-chroot /mnt pacman -S --noconfirm --needed cuda cudnn 2>/dev/null || print_warning "CUDA/cuDNN install skipped (optional)"
 
 # Configure early KMS (Kernel Mode Setting)
 print_info "Configuring kernel modules..."
