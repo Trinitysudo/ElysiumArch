@@ -23,7 +23,7 @@ echo -e "${CYAN}╚════════════════════�
 echo ""
 
 # Check if installation status file exists
-if [[ ! -f /tmp/install_status ]]; then
+if [[ ! -f /var/log/elysium/install_status ]]; then
     echo -e "${YELLOW}⚠ Warning: Installation status file not found${NC}"
     echo -e "${YELLOW}This may be a fresh boot without full installation tracking.${NC}"
     echo ""
@@ -106,7 +106,13 @@ check_component() {
 echo -e "${BOLD}Core System:${NC}"
 check_component "bootloader" "command -v grub-mkconfig" "GRUB Bootloader"
 check_component "network" "systemctl is-enabled NetworkManager" "NetworkManager"
-check_component "audio" "systemctl --user is-active pipewire" "PipeWire Audio" || ((WARNING_COUNT++))
+if command -v pipewire &>/dev/null; then
+    echo -e "${GREEN}✓${NC} PipeWire Audio"
+    ((SUCCESS_COUNT++))
+else
+    echo -e "${YELLOW}⚠${NC} PipeWire Audio"
+    ((WARNING_COUNT++))
+fi
 check_component "bluetooth" "systemctl is-enabled bluetooth" "Bluetooth Service"
 echo ""
 
@@ -119,8 +125,8 @@ echo ""
 
 # GPU Drivers
 echo -e "${BOLD}Graphics Drivers:${NC}"
-if [[ -f /tmp/gpu_type ]]; then
-    GPU_TYPE=$(cat /tmp/gpu_type)
+if [[ -f /var/log/elysium/gpu_type ]]; then
+    GPU_TYPE=$(cat /var/log/elysium/gpu_type)
     case $GPU_TYPE in
         NVIDIA)
             if check_component "nvidia" "command -v nvidia-smi" "NVIDIA Drivers"; then
@@ -204,10 +210,10 @@ echo -e "${BOLD}${CYAN}═══════════════════
 echo ""
 
 # Check for specific errors in status file
-if [[ -f /tmp/install_status ]]; then
-    if grep -q "FAILED" /tmp/install_status; then
+if [[ -f /var/log/elysium/install_status ]]; then
+    if grep -q "FAILED" /var/log/elysium/install_status; then
         echo -e "${RED}✗ Some components failed to install:${NC}"
-        grep "FAILED" /tmp/install_status | while read line; do
+        grep "FAILED" /var/log/elysium/install_status | while read line; do
             echo -e "  ${RED}•${NC} $line"
         done
         echo ""

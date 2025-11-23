@@ -17,7 +17,8 @@ if systemd-detect-virt --quiet; then
     arch-chroot /mnt pacman -S --noconfirm --needed mesa xf86-video-vesa
     print_success "VM graphics drivers installed"
     
-    echo "VM" > /mnt/tmp/gpu_type
+    mkdir -p /mnt/var/log/elysium
+    echo "VM" > /mnt/var/log/elysium/gpu_type
     exit 0
 fi
 
@@ -30,15 +31,15 @@ GPU_INTEL=$(lspci | grep -i intel | grep -i vga)
 print_info "GPU Detection Results:"
 if [[ -n "$GPU_NVIDIA" ]]; then
     print_info "  ✓ NVIDIA GPU detected: $(echo "$GPU_NVIDIA" | cut -d: -f3 | xargs)"
-    echo "NVIDIA" > /mnt/tmp/gpu_type
+    echo "NVIDIA" > /mnt/var/log/elysium/gpu_type
 fi
 if [[ -n "$GPU_AMD" ]]; then
     print_info "  ✓ AMD GPU detected: $(echo "$GPU_AMD" | cut -d: -f3 | xargs)"
-    echo "AMD" > /mnt/tmp/gpu_type
+    echo "AMD" > /mnt/var/log/elysium/gpu_type
 fi
 if [[ -n "$GPU_INTEL" ]]; then
     print_info "  ✓ Intel GPU detected: $(echo "$GPU_INTEL" | cut -d: -f3 | xargs)"
-    [[ -z "$(cat /mnt/tmp/gpu_type 2>/dev/null)" ]] && echo "INTEL" > /mnt/tmp/gpu_type
+    [[ -z "$(cat /mnt/var/log/elysium/gpu_type 2>/dev/null)" ]] && echo "INTEL" > /mnt/var/log/elysium/gpu_type
 fi
 
 # Install drivers based on detected GPU
@@ -69,8 +70,13 @@ EOF
         print_success "NVIDIA drivers installed"
         log_success "GPU: NVIDIA drivers installed"
         
-        # Configure NVIDIA
-        sed -i 's/^MODULES=()/MODULES=(nvidia nvidia_modeset nvidia_uvm nvidia_drm)/' /mnt/etc/mkinitcpio.conf
+        # Configure NVIDIA modules in mkinitcpio
+        if grep -q "^MODULES=()" /mnt/etc/mkinitcpio.conf; then
+            sed -i 's/^MODULES=()/MODULES=(nvidia nvidia_modeset nvidia_uvm nvidia_drm)/' /mnt/etc/mkinitcpio.conf
+        else
+            # If MODULES already has content, append NVIDIA modules
+            sed -i 's/^MODULES=(\(.*\))/MODULES=(\1 nvidia nvidia_modeset nvidia_uvm nvidia_drm)/' /mnt/etc/mkinitcpio.conf
+        fi
         arch-chroot /mnt mkinitcpio -P
         
         # Add kernel parameters
@@ -101,11 +107,11 @@ NVIDIAMODEOF
         arch-chroot /mnt systemctl enable nvidia-persistenced
         print_success "NVIDIA configuration complete"
         
-        echo "NVIDIA_SUCCESS" >> /mnt/tmp/install_status
+        echo "NVIDIA_SUCCESS" >> /mnt/var/log/elysium/install_status
     else
         print_error "NVIDIA driver installation failed"
         log_error "GPU: NVIDIA driver installation failed"
-        echo "NVIDIA_FAILED" >> /mnt/tmp/install_status
+        echo "NVIDIA_FAILED" >> /mnt/var/log/elysium/install_status
     fi
     
 elif [[ -n "$GPU_AMD" ]]; then
@@ -128,7 +134,11 @@ elif [[ -n "$GPU_AMD" ]]; then
         log_success "GPU: AMD drivers installed"
         
         # Enable early KMS for AMD
-        sed -i 's/^MODULES=()/MODULES=(amdgpu radeon)/' /mnt/etc/mkinitcpio.conf
+        if grep -q "^MODULES=()" /mnt/etc/mkinitcpio.conf; then
+            sed -i 's/^MODULES=()/MODULES=(amdgpu radeon)/' /mnt/etc/mkinitcpio.conf
+        else
+            sed -i 's/^MODULES=(\(.*\))/MODULES=(\1 amdgpu radeon)/' /mnt/etc/mkinitcpio.conf
+        fi
         arch-chroot /mnt mkinitcpio -P
         
         # Add kernel parameters for AMD
@@ -137,11 +147,11 @@ elif [[ -n "$GPU_AMD" ]]; then
         fi
         
         print_success "AMD configuration complete"
-        echo "AMD_SUCCESS" >> /mnt/tmp/install_status
+        echo "AMD_SUCCESS" >> /mnt/var/log/elysium/install_status
     else
         print_error "AMD driver installation failed"
         log_error "GPU: AMD driver installation failed"
-        echo "AMD_FAILED" >> /mnt/tmp/install_status
+        echo "AMD_FAILED" >> /mnt/var/log/elysium/install_status
     fi
     
 elif [[ -n "$GPU_INTEL" ]]; then
@@ -162,23 +172,27 @@ elif [[ -n "$GPU_INTEL" ]]; then
         log_success "GPU: Intel drivers installed"
         
         # Enable early KMS for Intel
-        sed -i 's/^MODULES=()/MODULES=(i915)/' /mnt/etc/mkinitcpio.conf
+        if grep -q "^MODULES=()" /mnt/etc/mkinitcpio.conf; then
+            sed -i 's/^MODULES=()/MODULES=(i915)/' /mnt/etc/mkinitcpio.conf
+        else
+            sed -i 's/^MODULES=(\(.*\))/MODULES=(\1 i915)/' /mnt/etc/mkinitcpio.conf
+        fi
         arch-chroot /mnt mkinitcpio -P
         
         print_success "Intel configuration complete"
-        echo "INTEL_SUCCESS" >> /mnt/tmp/install_status
+        echo "INTEL_SUCCESS" >> /mnt/var/log/elysium/install_status
     else
         print_error "Intel driver installation failed"
         log_error "GPU: Intel driver installation failed"
-        echo "INTEL_FAILED" >> /mnt/tmp/install_status
+        echo "INTEL_FAILED" >> /mnt/var/log/elysium/install_status
     fi
     
 else
     print_warning "No discrete GPU detected, using generic drivers"
     arch-chroot /mnt pacman -S --noconfirm --needed mesa
     print_success "Generic drivers installed"
-    echo "GENERIC" > /mnt/tmp/gpu_type
-    echo "GENERIC_SUCCESS" >> /mnt/tmp/install_status
+    echo "GENERIC" > /mnt/var/log/elysium/gpu_type
+    echo "GENERIC_SUCCESS" >> /mnt/var/log/elysium/install_status
 fi
 
 print_success "GPU driver installation complete"

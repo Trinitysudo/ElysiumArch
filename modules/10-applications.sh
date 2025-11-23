@@ -29,7 +29,7 @@ fi
 arch-chroot /mnt pacman -S --noconfirm --needed $STEAM_PACKAGES
 
 print_success "Steam installed with GPU-specific libraries"
-echo "STEAM_SUCCESS" >> /mnt/tmp/install_status
+echo "STEAM_SUCCESS" >> /mnt/var/log/elysium/install_status
 
 # Install OBS Studio
 print_info "Installing OBS Studio..."
