@@ -16,28 +16,17 @@ print_info "Installing yay (AUR helper)..."
 arch-chroot /mnt mkdir -p /home/$USERNAME/aur-build
 arch-chroot /mnt chown -R $USERNAME:$USERNAME /home/$USERNAME/aur-build
 
-# Create a build script that runs as the user
-cat > /mnt/home/$USERNAME/build-yay.sh << 'EOFBUILD'
-#!/bin/bash
-cd /home/$USERNAME/aur-build
-git clone https://aur.archlinux.org/yay-bin.git
-cd yay-bin
-makepkg -si --noconfirm --needed
-EOFBUILD
+# Clone and build as user directly
+print_info "Cloning yay-bin..."
+arch-chroot /mnt sudo -u $USERNAME bash -c 'cd ~ && mkdir -p aur-build && cd aur-build && git clone https://aur.archlinux.org/yay-bin.git'
 
-# Replace $USERNAME in the script
-sed -i "s/\$USERNAME/$USERNAME/g" /mnt/home/$USERNAME/build-yay.sh
-chmod +x /mnt/home/$USERNAME/build-yay.sh
-arch-chroot /mnt chown $USERNAME:$USERNAME /home/$USERNAME/build-yay.sh
-
-# Run the build script as the user
-print_info "Building yay package..."
-arch-chroot /mnt su - $USERNAME -c "/home/$USERNAME/build-yay.sh"
+print_info "Building and installing yay..."
+arch-chroot /mnt sudo -u $USERNAME bash -c 'cd ~/aur-build/yay-bin && makepkg -si --noconfirm --needed'
 
 YAY_BUILD_EXIT=$?
 
-# Remove build script
-rm -f /mnt/home/$USERNAME/build-yay.sh
+# Cleanup
+arch-chroot /mnt rm -rf /home/$USERNAME/aur-build
 
 if [[ $YAY_BUILD_EXIT -ne 0 ]]; then
     print_error "Failed to install yay (exit code: $YAY_BUILD_EXIT)"
@@ -70,28 +59,17 @@ print_info "Installing paru (alternative AUR helper)..."
 arch-chroot /mnt mkdir -p /home/$USERNAME/aur-build
 arch-chroot /mnt chown -R $USERNAME:$USERNAME /home/$USERNAME/aur-build
 
-# Create a build script that runs as the user
-cat > /mnt/home/$USERNAME/build-paru.sh << 'EOFBUILD'
-#!/bin/bash
-cd /home/$USERNAME/aur-build
-git clone https://aur.archlinux.org/paru.git
-cd paru
-makepkg -si --noconfirm --needed
-EOFBUILD
+# Clone and build as user directly
+print_info "Cloning paru..."
+arch-chroot /mnt sudo -u $USERNAME bash -c 'cd ~ && mkdir -p aur-build && cd aur-build && git clone https://aur.archlinux.org/paru.git'
 
-# Replace $USERNAME in the script
-sed -i "s/\$USERNAME/$USERNAME/g" /mnt/home/$USERNAME/build-paru.sh
-chmod +x /mnt/home/$USERNAME/build-paru.sh
-arch-chroot /mnt chown $USERNAME:$USERNAME /home/$USERNAME/build-paru.sh
-
-# Run the build script as the user
-print_info "Building paru package..."
-arch-chroot /mnt su - $USERNAME -c "/home/$USERNAME/build-paru.sh"
+print_info "Building and installing paru..."
+arch-chroot /mnt sudo -u $USERNAME bash -c 'cd ~/aur-build/paru && makepkg -si --noconfirm --needed'
 
 PARU_BUILD_EXIT=$?
 
-# Remove build script
-rm -f /mnt/home/$USERNAME/build-paru.sh
+# Cleanup
+arch-chroot /mnt rm -rf /home/$USERNAME/aur-build
 
 if [[ $PARU_BUILD_EXIT -ne 0 ]]; then
     print_warning "Failed to install paru (optional, exit code: $PARU_BUILD_EXIT)"
