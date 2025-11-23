@@ -6,35 +6,48 @@
 
 print_info "Installing GRUB bootloader..."
 
-# Verify EFI partition is mounted
-if ! mountpoint -q /mnt/boot/efi; then
-    print_error "EFI partition not mounted at /mnt/boot/efi"
-    print_info "Current mounts:"
-    mount | grep /mnt
-    log_error "Bootloader: EFI partition not mounted"
-    exit 1
-fi
-
-# Install efibootmgr if not already installed
-arch-chroot /mnt pacman -S --noconfirm --needed efibootmgr
-
-# Install GRUB for UEFI (with fallback for BIOS)
-print_info "Installing GRUB to EFI partition..."
-if [[ -d /sys/firmware/efi ]]; then
+# Install GRUB based on boot mode
+if [[ "$BOOT_MODE" == "UEFI" ]]; then
+    print_info "Installing GRUB for UEFI mode..."
+    
+    # Verify EFI partition is mounted
+    if ! mountpoint -q /mnt/boot/efi; then
+        print_error "EFI partition not mounted at /mnt/boot/efi"
+        print_info "Current mounts:"
+        mount | grep /mnt
+        log_error "Bootloader: EFI partition not mounted"
+        exit 1
+    fi
+    
+    # Install efibootmgr
+    arch-chroot /mnt pacman -S --noconfirm --needed efibootmgr
+    
+    # Install GRUB for UEFI
     arch-chroot /mnt grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=ElysiumArch --recheck
+    
+    if [[ $? -ne 0 ]]; then
+        print_error "Failed to install GRUB for UEFI"
+        log_error "Bootloader: GRUB UEFI installation failed"
+        exit 1
+    fi
+    
+    print_success "GRUB installed for UEFI"
 else
-    print_warning "UEFI not detected, installing for BIOS..."
-    arch-chroot /mnt grub-install --target=i386-pc "$INSTALL_DISK"
+    print_info "Installing GRUB for BIOS/Legacy mode..."
+    
+    # Install GRUB for BIOS
+    arch-chroot /mnt grub-install --target=i386-pc --recheck "$INSTALL_DISK"
+    
+    if [[ $? -ne 0 ]]; then
+        print_error "Failed to install GRUB for BIOS"
+        log_error "Bootloader: GRUB BIOS installation failed"
+        exit 1
+    fi
+    
+    print_success "GRUB installed for BIOS/Legacy"
 fi
 
-if [[ $? -ne 0 ]]; then
-    print_error "Failed to install GRUB"
-    log_error "Bootloader: GRUB installation failed"
-    exit 1
-fi
-
-print_success "GRUB installed to EFI"
-log_success "Bootloader: GRUB installed"
+log_success "Bootloader: GRUB installed for $BOOT_MODE"
 
 # Enable os-prober for dual-boot detection
 print_info "Enabling os-prober for dual-boot detection..."

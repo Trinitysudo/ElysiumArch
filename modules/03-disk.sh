@@ -132,24 +132,46 @@ else
 fi
 export PART_PREFIX
 
-# Set partition variables based on scheme
-EFI_PART="${PART_PREFIX}1"
-if [ "$USE_SWAP" = true ]; then
-    SWAP_PART="${PART_PREFIX}2"
-    ROOT_PART="${PART_PREFIX}3"
-    export EFI_PART SWAP_PART ROOT_PART
-    
-    print_info "Partition scheme:"
-    print_info "  EFI:  $EFI_PART (512 MB)"
-    print_info "  SWAP: $SWAP_PART (${SWAP_SIZE} GB)"
-    print_info "  ROOT: $ROOT_PART (remaining space)"
+# Set partition variables based on boot mode and scheme
+if [[ "$BOOT_MODE" == "UEFI" ]]; then
+    EFI_PART="${PART_PREFIX}1"
+    if [ "$USE_SWAP" = true ]; then
+        SWAP_PART="${PART_PREFIX}2"
+        ROOT_PART="${PART_PREFIX}3"
+        export EFI_PART SWAP_PART ROOT_PART
+        
+        print_info "Partition scheme (UEFI):"
+        print_info "  EFI:  $EFI_PART (512 MB)"
+        print_info "  SWAP: $SWAP_PART (${SWAP_SIZE} GB)"
+        print_info "  ROOT: $ROOT_PART (remaining space)"
+    else
+        ROOT_PART="${PART_PREFIX}2"
+        export EFI_PART ROOT_PART
+        
+        print_info "Partition scheme (UEFI):"
+        print_info "  EFI:  $EFI_PART (512 MB)"
+        print_info "  ROOT: $ROOT_PART (remaining space)"
+    fi
 else
-    ROOT_PART="${PART_PREFIX}2"
-    export EFI_PART ROOT_PART
-    
-    print_info "Partition scheme:"
-    print_info "  EFI:  $EFI_PART (512 MB)"
-    print_info "  ROOT: $ROOT_PART (remaining space)"
+    # BIOS mode - no EFI partition
+    BIOS_PART="${PART_PREFIX}1"
+    if [ "$USE_SWAP" = true ]; then
+        SWAP_PART="${PART_PREFIX}2"
+        ROOT_PART="${PART_PREFIX}3"
+        export BIOS_PART SWAP_PART ROOT_PART
+        
+        print_info "Partition scheme (BIOS):"
+        print_info "  BIOS: $BIOS_PART (2 MB BIOS boot)"
+        print_info "  SWAP: $SWAP_PART (${SWAP_SIZE} GB)"
+        print_info "  ROOT: $ROOT_PART (remaining space)"
+    else
+        ROOT_PART="${PART_PREFIX}2"
+        export BIOS_PART ROOT_PART
+        
+        print_info "Partition scheme (BIOS):"
+        print_info "  BIOS: $BIOS_PART (2 MB BIOS boot)"
+        print_info "  ROOT: $ROOT_PART (remaining space)"
+    fi
 fi
 
 # Unmount any mounted partitions
@@ -157,25 +179,58 @@ print_info "Unmounting any mounted partitions..."
 umount -R /mnt 2>/dev/null || true
 swapoff -a 2>/dev/null || true
 
+# Detect boot mode (UEFI or BIOS)
+if [[ -d /sys/firmware/efi ]]; then
+    BOOT_MODE="UEFI"
+    print_info "Detected UEFI boot mode"
+else
+    BOOT_MODE="BIOS"
+    print_info "Detected BIOS/Legacy boot mode"
+fi
+export BOOT_MODE
+
 # Wipe disk
 print_info "Wiping disk..."
 wipefs -af "$DISK"
 sgdisk --zap-all "$DISK"
 
-# Create partitions based on scheme
-print_info "Creating partitions..."
-parted -s "$DISK" mklabel gpt
-parted -s "$DISK" mkpart primary fat32 1MiB 513MiB
-parted -s "$DISK" set 1 esp on
+# Create partitions based on boot mode
+print_info "Creating partitions for $BOOT_MODE mode..."
 
-if [ "$USE_SWAP" = true ]; then
-    # With swap
-    SWAP_END_MB=$((513 + SWAP_SIZE * 1024))
-    parted -s "$DISK" mkpart primary linux-swap 513MiB ${SWAP_END_MB}MiB
-    parted -s "$DISK" mkpart primary ext4 ${SWAP_END_MB}MiB 100%
+if [[ "$BOOT_MODE" == "UEFI" ]]; then
+    # UEFI: GPT with EFI partition
+    parted -s "$DISK" mklabel gpt
+    parted -s "$DISK" mkpart primary fat32 1MiB 513MiB
+    parted -s "$DISK" set 1 esp on
+    parted -s "$DISK" name 1 "EFI"
+    
+    if [ "$USE_SWAP" = true ]; then
+        SWAP_END_MB=$((513 + SWAP_SIZE * 1024))
+        parted -s "$DISK" mkpart primary linux-swap 513MiB ${SWAP_END_MB}MiB
+        parted -s "$DISK" name 2 "SWAP"
+        parted -s "$DISK" mkpart primary ext4 ${SWAP_END_MB}MiB 100%
+        parted -s "$DISK" name 3 "ROOT"
+    else
+        parted -s "$DISK" mkpart primary ext4 513MiB 100%
+        parted -s "$DISK" name 2 "ROOT"
+    fi
 else
-    # No swap
-    parted -s "$DISK" mkpart primary ext4 513MiB 100%
+    # BIOS: GPT with BIOS boot partition
+    parted -s "$DISK" mklabel gpt
+    parted -s "$DISK" mkpart primary 1MiB 3MiB
+    parted -s "$DISK" set 1 bios_grub on
+    parted -s "$DISK" name 1 "BIOS_BOOT"
+    
+    if [ "$USE_SWAP" = true ]; then
+        SWAP_END_MB=$((3 + SWAP_SIZE * 1024))
+        parted -s "$DISK" mkpart primary linux-swap 3MiB ${SWAP_END_MB}MiB
+        parted -s "$DISK" name 2 "SWAP"
+        parted -s "$DISK" mkpart primary ext4 ${SWAP_END_MB}MiB 100%
+        parted -s "$DISK" name 3 "ROOT"
+    else
+        parted -s "$DISK" mkpart primary ext4 3MiB 100%
+        parted -s "$DISK" name 2 "ROOT"
+    fi
 fi
 
 # Wait for kernel to recognize partitions
@@ -184,9 +239,21 @@ partprobe "$DISK"
 sleep 2
 
 # Verify partitions exist
-if [[ ! -b "$EFI_PART" ]] || [[ ! -b "$ROOT_PART" ]]; then
-    print_error "Failed to create partitions!"
+if [[ ! -b "$ROOT_PART" ]]; then
+    print_error "Failed to create root partition!"
     log_error "Disk: Partition creation failed"
+    exit 1
+fi
+
+if [[ "$BOOT_MODE" == "UEFI" ]] && [[ ! -b "$EFI_PART" ]]; then
+    print_error "Failed to create EFI partition!"
+    log_error "Disk: EFI partition creation failed"
+    exit 1
+fi
+
+if [[ "$BOOT_MODE" == "BIOS" ]] && [[ ! -b "$BIOS_PART" ]]; then
+    print_error "Failed to create BIOS boot partition!"
+    log_error "Disk: BIOS partition creation failed"
     exit 1
 fi
 
@@ -202,8 +269,10 @@ log_success "Disk: Partitions created on $DISK"
 # Format partitions
 print_info "Formatting partitions..."
 
-print_info "Formatting EFI partition ($EFI_PART)..."
-mkfs.fat -F32 "$EFI_PART"
+if [[ "$BOOT_MODE" == "UEFI" ]]; then
+    print_info "Formatting EFI partition ($EFI_PART)..."
+    mkfs.fat -F32 "$EFI_PART"
+fi
 
 if [ "$USE_SWAP" = true ]; then
     print_info "Creating swap ($SWAP_PART)..."
@@ -222,9 +291,13 @@ print_info "Mounting partitions..."
 print_info "Mounting root partition..."
 mount "$ROOT_PART" /mnt
 
-print_info "Creating EFI mount point..."
-mkdir -p /mnt/boot/efi
-mount "$EFI_PART" /mnt/boot/efi
+if [[ "$BOOT_MODE" == "UEFI" ]]; then
+    print_info "Creating EFI mount point..."
+    mkdir -p /mnt/boot/efi
+    mount "$EFI_PART" /mnt/boot/efi
+else
+    print_info "BIOS mode - no EFI partition to mount"
+fi
 
 if [ "$USE_SWAP" = true ]; then
     print_info "Enabling swap..."
