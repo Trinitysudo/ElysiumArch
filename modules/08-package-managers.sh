@@ -17,7 +17,7 @@ arch-chroot /mnt mkdir -p /home/$USERNAME/aur-build
 arch-chroot /mnt chown -R $USERNAME:$USERNAME /home/$USERNAME/aur-build
 
 # Create a build script that runs as the user
-cat > /mnt/tmp/build-yay.sh << 'EOFBUILD'
+cat > /mnt/home/$USERNAME/build-yay.sh << 'EOFBUILD'
 #!/bin/bash
 cd /home/$USERNAME/aur-build
 git clone https://aur.archlinux.org/yay-bin.git
@@ -26,18 +26,18 @@ makepkg -si --noconfirm --needed
 EOFBUILD
 
 # Replace $USERNAME in the script
-sed -i "s/\$USERNAME/$USERNAME/g" /mnt/tmp/build-yay.sh
-chmod +x /mnt/tmp/build-yay.sh
-arch-chroot /mnt chown $USERNAME:$USERNAME /tmp/build-yay.sh
+sed -i "s/\$USERNAME/$USERNAME/g" /mnt/home/$USERNAME/build-yay.sh
+chmod +x /mnt/home/$USERNAME/build-yay.sh
+arch-chroot /mnt chown $USERNAME:$USERNAME /home/$USERNAME/build-yay.sh
 
 # Run the build script as the user
 print_info "Building yay package..."
-arch-chroot /mnt su - $USERNAME -c "/tmp/build-yay.sh"
+arch-chroot /mnt su - $USERNAME -c "/home/$USERNAME/build-yay.sh"
 
 YAY_BUILD_EXIT=$?
 
 # Remove build script
-rm -f /mnt/tmp/build-yay.sh
+rm -f /mnt/home/$USERNAME/build-yay.sh
 
 if [[ $YAY_BUILD_EXIT -ne 0 ]]; then
     print_error "Failed to install yay (exit code: $YAY_BUILD_EXIT)"
@@ -71,27 +71,27 @@ arch-chroot /mnt mkdir -p /home/$USERNAME/aur-build
 arch-chroot /mnt chown -R $USERNAME:$USERNAME /home/$USERNAME/aur-build
 
 # Create a build script that runs as the user
-cat > /mnt/tmp/build-paru.sh << 'EOFBUILD'
+cat > /mnt/home/$USERNAME/build-paru.sh << 'EOFBUILD'
 #!/bin/bash
 cd /home/$USERNAME/aur-build
 git clone https://aur.archlinux.org/paru.git
 cd paru
-makepkg -s --noconfirm --needed
+makepkg -si --noconfirm --needed
 EOFBUILD
 
 # Replace $USERNAME in the script
-sed -i "s/\$USERNAME/$USERNAME/g" /mnt/tmp/build-paru.sh
-chmod +x /mnt/tmp/build-paru.sh
-arch-chroot /mnt chown $USERNAME:$USERNAME /tmp/build-paru.sh
+sed -i "s/\$USERNAME/$USERNAME/g" /mnt/home/$USERNAME/build-paru.sh
+chmod +x /mnt/home/$USERNAME/build-paru.sh
+arch-chroot /mnt chown $USERNAME:$USERNAME /home/$USERNAME/build-paru.sh
 
 # Run the build script as the user
 print_info "Building paru package..."
-arch-chroot /mnt su - $USERNAME -c "/tmp/build-paru.sh"
+arch-chroot /mnt su - $USERNAME -c "/home/$USERNAME/build-paru.sh"
 
 PARU_BUILD_EXIT=$?
 
 # Remove build script
-rm -f /mnt/tmp/build-paru.sh
+rm -f /mnt/home/$USERNAME/build-paru.sh
 
 if [[ $PARU_BUILD_EXIT -ne 0 ]]; then
     print_warning "Failed to install paru (optional, exit code: $PARU_BUILD_EXIT)"
