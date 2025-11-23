@@ -12,11 +12,8 @@ arch-chroot /mnt pacman -S --noconfirm --needed base-devel git util-linux sudo
 # Helper function to run a command strictly as the normal user inside chroot
 run_as_user() {
     local CMD="$1"
-    # Use runuser (preferred) falling back to su if runuser fails
-    arch-chroot /mnt runuser -u "$USERNAME" -- /bin/bash -lc "$CMD" 2>/tmp/runuser_err.$$ || {
-        print_warning "runuser failed; falling back to su for: $CMD"
-        arch-chroot /mnt su - "$USERNAME" -c "$CMD"
-    }
+    # Use sudo -u since runuser has NSS issues in chroot
+    arch-chroot /mnt sudo -u "$USERNAME" bash -c "$CMD"
 }
 
 # YAY INSTALLATION ---------------------------------------------------------
@@ -63,38 +60,15 @@ fi
 
 # Final yay verification (ensure not root)
 if arch-chroot /mnt test -x /usr/bin/yay; then
-    print_info "Verifying yay (multi-step)..."
-    # Show ownership & permissions
-    arch-chroot /mnt ls -l /usr/bin/yay || true
-    # Capture user context info
-    arch-chroot /mnt runuser -u "$USERNAME" -- /usr/bin/id -u > /tmp/yay_uid.$$ 2>/dev/null || true
-    YAY_UID=$(arch-chroot /mnt cat /tmp/yay_uid.$$ 2>/dev/null || echo "?")
-    print_info "User UID inside chroot: $YAY_UID (should be > 0)"
-    # Try version with minimal clean environment
-    YAY_VERSION=$(arch-chroot /mnt runuser -u "$USERNAME" -- /usr/bin/env -i HOME=/home/$USERNAME USER=$USERNAME PATH=/usr/bin:/bin /usr/bin/yay --version 2>/dev/null || true)
-    if [[ -z "$YAY_VERSION" ]]; then
-        print_warning "Clean env version check failed – retrying with default environment"
-        YAY_VERSION=$(arch-chroot /mnt runuser -u "$USERNAME" -- /usr/bin/yay --version 2>/dev/null || true)
-    fi
-    if [[ -z "$YAY_VERSION" ]]; then
-        print_warning "Fallback runuser failed – retrying with sudo -u"
-        YAY_VERSION=$(arch-chroot /mnt sudo -u "$USERNAME" /usr/bin/yay --version 2>/dev/null || true)
-    fi
-    if [[ -z "$YAY_VERSION" ]]; then
-        print_warning "sudo -u failed – final fallback running under root (will warn)"
-        YAY_VERSION=$(arch-chroot /mnt /usr/bin/yay --version 2>/dev/null || true)
-        if [[ -n "$YAY_VERSION" ]]; then
-            print_warning "Version only obtainable under root – build ran but user context is wrong."
-        fi
-    fi
-    if [[ -n "$YAY_VERSION" ]]; then
-        print_success "yay installed successfully (version: $YAY_VERSION)"
+    print_info "Verifying yay as user..."
+    YAY_VERSION=$(arch-chroot /mnt sudo -u "$USERNAME" yay --version 2>&1 | head -1 || true)
+    if [[ -n "$YAY_VERSION" && "$YAY_VERSION" != *"error"* ]]; then
+        print_success "yay installed successfully: $YAY_VERSION"
         log_success "Package Managers: yay installed: $YAY_VERSION"
     else
-        print_error "yay binary present but ALL version checks failed"
-        print_info "Diagnostics: showing file type & dynamic links"
-        arch-chroot /mnt file /usr/bin/yay || true
-        arch-chroot /mnt ldd /usr/bin/yay || true
+        print_error "yay binary present but version check failed"
+        print_info "Checking if yay works as root (diagnostic)..."
+        arch-chroot /mnt yay --version || true
         log_error "Package Managers: yay version verification failed"
         exit 1
     fi
