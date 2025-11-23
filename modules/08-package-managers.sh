@@ -222,28 +222,38 @@ arch-chroot /mnt pacman -S --noconfirm --needed \
     curl
 
 # Install Homebrew as user
-print_info "Installing Homebrew (this may take a few minutes)..."
+print_info "Installing Homebrew (this may take 5-10 minutes)..."
 arch-chroot /mnt sudo -u $USERNAME bash << 'HOMEBREW_EOF'
+set -e
 export NONINTERACTIVE=1
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+export CI=1
 
-# Add brew to shell config
+echo "Downloading Homebrew installer..."
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" || {
+    echo "ERROR: Homebrew installation failed!"
+    echo "This is optional - you can skip it"
+    exit 1
+}
+
+# Verify installation
 if [ -d "/home/linuxbrew/.linuxbrew" ]; then
     echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ~/.bashrc
     echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ~/.zshrc
-    echo "Homebrew installed successfully"
+    echo "Homebrew installed successfully at /home/linuxbrew/.linuxbrew"
 else
-    echo "Homebrew installation may have failed"
+    echo "ERROR: Homebrew directory not found after installation"
     exit 1
 fi
 HOMEBREW_EOF
 
 if [[ $? -eq 0 ]]; then
-    print_success "Homebrew installed"
+    print_success "Homebrew installed successfully"
     log_success "Package Managers: Homebrew installed"
+    echo "NOTE: Run 'eval \"\$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\"' to use brew in current session"
 else
-    print_warning "Failed to install Homebrew (optional)"
-    log_warning "Package Managers: Homebrew installation failed"
+    print_warning "Homebrew installation failed (OPTIONAL - system will work without it)"
+    print_info "You can install Homebrew later with: /bin/bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\""
+    log_warning "Package Managers: Homebrew installation failed (optional)"
 fi
 
 print_success "Package managers installed"

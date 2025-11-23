@@ -12,16 +12,6 @@ arch-chroot /mnt pacman -S --noconfirm --needed gnome-shell-extensions extension
 
 print_success "Extension Manager installed"
 
-# Install Arc Menu from AUR
-print_info "Installing Arc Menu extension..."
-arch-chroot /mnt su - $USERNAME -c "yay -S --noconfirm gnome-shell-extension-arc-menu"
-
-if [[ $? -eq 0 ]]; then
-    print_success "Arc Menu installed"
-else
-    print_warning "Failed to install Arc Menu (will try alternative method)"
-fi
-
 # Install Blur My Shell from AUR
 print_info "Installing Blur My Shell extension..."
 arch-chroot /mnt su - $USERNAME -c "yay -S --noconfirm gnome-shell-extension-blur-my-shell"
@@ -46,14 +36,8 @@ cat > /mnt/home/$USERNAME/.local/bin/configure-extensions.sh << 'EXTEOF'
 #!/bin/bash
 
 # Enable extensions
-gnome-extensions enable arcmenu@arcmenu.com
 gnome-extensions enable blur-my-shell@aunetx
 gnome-extensions enable dash-to-dock@micxgx.gmail.com
-
-# Configure Arc Menu
-gsettings set org.gnome.shell.extensions.arcmenu menu-button-appearance 'Icon'
-gsettings set org.gnome.shell.extensions.arcmenu menu-layout 'Eleven'
-gsettings set org.gnome.shell.extensions.arcmenu position-in-panel 'Left'
 
 # Configure Blur My Shell
 gsettings set org.gnome.shell.extensions.blur-my-shell.panel blur true
@@ -61,7 +45,7 @@ gsettings set org.gnome.shell.extensions.blur-my-shell.panel brightness 0.6
 gsettings set org.gnome.shell.extensions.blur-my-shell.dash-to-dock blur true
 gsettings set org.gnome.shell.extensions.blur-my-shell.dash-to-dock brightness 0.6
 
-# Configure Dash to Dock
+# Configure Dash to Dock - macOS style (always visible at bottom)
 # Only show running applications (no pinned apps)
 gsettings set org.gnome.shell.extensions.dash-to-dock show-apps-at-top false
 gsettings set org.gnome.shell.extensions.dash-to-dock show-trash false
@@ -70,13 +54,18 @@ gsettings set org.gnome.shell.extensions.dash-to-dock show-mounts false
 # Dock size and position
 gsettings set org.gnome.shell.extensions.dash-to-dock dock-position 'BOTTOM'
 gsettings set org.gnome.shell.extensions.dash-to-dock extend-height false
-gsettings set org.gnome.shell.extensions.dash-to-dock dash-max-icon-size 48
+gsettings set org.gnome.shell.extensions.dash-to-dock dash-max-icon-size 56
 gsettings set org.gnome.shell.extensions.dash-to-dock icon-size-fixed true
 
 # Dock behavior - only show running apps
 gsettings set org.gnome.shell.extensions.dash-to-dock show-running true
 gsettings set org.gnome.shell.extensions.dash-to-dock show-favorites false
 gsettings set org.gnome.shell.extensions.dash-to-dock isolate-workspaces false
+
+# macOS-style behavior: ALWAYS VISIBLE (not auto-hide)
+gsettings set org.gnome.shell.extensions.dash-to-dock dock-fixed true
+gsettings set org.gnome.shell.extensions.dash-to-dock autohide false
+gsettings set org.gnome.shell.extensions.dash-to-dock intellihide false
 
 # Blue theme with transparency
 gsettings set org.gnome.shell.extensions.dash-to-dock transparency-mode 'FIXED'
@@ -87,18 +76,12 @@ gsettings set org.gnome.shell.extensions.dash-to-dock background-color '#1e3a5f'
 # Blue accent color for entire system
 gsettings set org.gnome.desktop.interface accent-color 'blue'
 
-# Dock appearance
+# Dock appearance - clean and minimal
 gsettings set org.gnome.shell.extensions.dash-to-dock apply-custom-theme false
-gsettings set org.gnome.shell.extensions.dash-to-dock custom-theme-shrink true
-gsettings set org.gnome.shell.extensions.dash-to-dock dock-fixed false
-gsettings set org.gnome.shell.extensions.dash-to-dock autohide true
-gsettings set org.gnome.shell.extensions.dash-to-dock intellihide true
-gsettings set org.gnome.shell.extensions.dash-to-dock intellihide-mode 'ALL_WINDOWS'
+gsettings set org.gnome.shell.extensions.dash-to-dock custom-theme-shrink false
 
 # Animation settings
 gsettings set org.gnome.shell.extensions.dash-to-dock animation-time 0.2
-gsettings set org.gnome.shell.extensions.dash-to-dock show-delay 0.25
-gsettings set org.gnome.shell.extensions.dash-to-dock hide-delay 0.2
 
 # Hot corners
 gsettings set org.gnome.shell.extensions.dash-to-dock hot-keys false
@@ -145,40 +128,39 @@ cat > /mnt/home/$USERNAME/GNOME-EXTENSIONS-INFO.txt << 'EOF'
 
 Your GNOME desktop has been configured with the following extensions:
 
-1. Arc Menu
-   - Modern application menu in the top-left corner
-   - Press the Arc Menu icon or Super key to open
-
-2. Blur My Shell
+1. Blur My Shell
    - Beautiful blur effects on the panel and dock
    - Provides modern, polished visual appearance
 
-3. Dash to Dock
-   - Customized dock that only shows running applications
-   - Dock appears at the bottom when you hover
-   - Solid dark gray background (#2e3436)
-   - Auto-hides when windows overlap
-   - Icon size: 48px
+2. Dash to Dock
+   - Customized dock at bottom (always visible, macOS-style)
+   - Only shows currently running applications
+   - Blue theme background (#1e3a5f) with transparency
+   - Icon size: 56px
 
 Extension Configuration:
 ------------------------
 - Extensions will be automatically enabled on first login
-- Use "Extension Manager" app to customize further
+- Use "Extension Manager" app to install more extensions
 - All extensions are configured for dark theme compatibility
+- Polkit authentication agent installed (no password prompts hang)
 
-Dock Behavior:
---------------
-- Only shows currently running applications (no pinned apps)
-- Auto-hides when windows are maximized
-- Appears when you move mouse to bottom of screen
-- Does NOT extend full width of screen
-- Dark gray solid background behind icons
+Alternative Dock Extensions:
+----------------------------
+If you prefer "Docking" by Ochi instead of Dash to Dock:
+1. Open "Extension Manager" app
+2. Click "Browse" tab
+3. Search for "Docking" by ochi
+4. Click "Install" (authentication will work now!)
+5. Disable Dash to Dock in Extension Manager
+6. Enable Docking extension
 
 To manually enable/disable extensions:
 ---------------------------------------
 1. Open "Extension Manager" from app menu
 2. Toggle extensions on/off as desired
 3. Configure individual extension settings
+4. Install more extensions from Browse tab
 
 For advanced customization:
 ----------------------------

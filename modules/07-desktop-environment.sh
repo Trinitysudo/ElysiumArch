@@ -40,7 +40,8 @@ arch-chroot /mnt pacman -S --noconfirm --needed \
     gnome-screenshot \
     eog \
     evince \
-    gedit
+    gedit \
+    polkit-gnome
 
 if [[ $? -ne 0 ]]; then
     print_error "Failed to install GNOME"
@@ -112,6 +113,24 @@ arch-chroot /mnt pacman -S --noconfirm --needed \
 print_success "Printing support installed"
 
 # Screenshot tool already installed above
+
+# Enable polkit authentication agent (required for extension installation)
+print_info "Enabling polkit authentication agent..."
+mkdir -p /mnt/etc/xdg/autostart
+cat > /mnt/etc/xdg/autostart/polkit-gnome-authentication-agent-1.desktop << 'POLKIT_EOF'
+[Desktop Entry]
+Name=PolicyKit Authentication Agent
+Comment=PolicyKit Authentication Agent
+Exec=/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1
+Terminal=false
+Type=Application
+Categories=
+NoDisplay=true
+OnlyShowIn=GNOME;Unity;
+AutostartCondition=GNOME3 unless-session gnome
+POLKIT_EOF
+
+print_success "Polkit authentication agent configured"
 
 # Enable services
 print_info "Enabling desktop services..."
