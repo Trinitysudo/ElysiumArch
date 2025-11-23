@@ -101,18 +101,28 @@
 ### Quick Start
 
 ```bash
-# 1. Connect to the internet (if not already connected)
-#    WiFi: The installer will guide you
+# 1. Connect to the internet FIRST (required!)
+#    WiFi users:
+#      iwctl
+#      station wlan0 connect YOUR_SSID
+#      exit
+#    
 #    Ethernet: Should work automatically
+#
+#    Test: ping archlinux.org
 
-# 2. Download the installer
+# 2. Use the bootstrap script (recommended)
+curl -L https://raw.githubusercontent.com/Trinitysudo/ElysiumArch/main/bootstrap.sh | bash
+
+# Or manually:
+# Download the installer
 curl -L https://github.com/Trinitysudo/ElysiumArch/archive/main.tar.gz | tar xz
 cd ElysiumArch-main
 
-# 3. Make the installer executable
+# Make the installer executable
 chmod +x install.sh
 
-# 4. Run the installer
+# Run the installer
 ./install.sh
 ```
 
@@ -134,135 +144,130 @@ The installer follows this automated workflow:
 
 ### **Phase 1: Pre-Installation** (5-10 minutes)
 1. **Welcome Screen** - Display banner and system check
-2. **Network Configuration**
-   - Auto-detect ethernet connection
-   - WiFi setup wizard if needed (interactive)
+2. **Network Verification**
+   - Verify internet connectivity
+   - Exit if no connection (connect before running installer)
 3. **Localization**
    - Select language (default: English)
-   - Choose timezone
+   - Choose timezone (auto-detected)
    - Configure keyboard layout
+   - Set hostname and create user account
 4. **Disk Selection**
    - List available drives
-   - Select installation target (NVME)
+   - Select installation target (NVME/SSD)
+   - Choose partition scheme:
+     * Option 1: EFI + Root (no swap) - Recommended for 16GB+ RAM
+     * Option 2: EFI + 4GB Swap + Root
+     * Option 3: EFI + Custom Swap Size + Root
    - Confirm disk wipe (safety prompt)
 
-### **Phase 2: Disk Setup** (2-5 minutes)
-5. **Partitioning**
-   - 512MB EFI partition
-   - 4GB Swap partition
-   - Remaining space for root (/)
-6. **Formatting**
-   - Format EFI as FAT32
-   - Format root as ext4
-   - Create and enable swap
-7. **Mounting**
-   - Mount filesystems
-   - Verify mount points
-
-### **Phase 3: Base System** (10-15 minutes)
-8. **Install Base Packages**
-   - linux, linux-firmware, base, base-devel
-   - Essential system utilities
-9. **Configure System**
+### **Phase 2: Disk Setup & Base System** (10-20 minutes)
+5. **Partitioning & Formatting**
+   - Create 512MB EFI partition (FAT32)
+   - Create optional swap partition
+   - Create root partition (ext4)
+   - Mount all filesystems
+6. **Install Base System**
+   - Install base packages via pacstrap
    - Generate fstab
-   - Set timezone and locale
-   - Configure hostname
-10. **Install Bootloader**
-    - Install GRUB for UEFI
-    - Generate GRUB config
-    - Configure boot options
+   - Configure locale, timezone, hostname
+   - Create user account with sudo access
+7. **Install Bootloader**
+   - Install GRUB for UEFI
+   - Configure GRUB settings
+   - Generate GRUB config
 
-### **Phase 4: Display Server & Desktop** (15-20 minutes)
-11. **Install Graphics Drivers**
-    - NVIDIA proprietary drivers
-    - Vulkan support
-    - CUDA toolkit (for development)
-12. **Install GNOME**
-    - GNOME desktop environment
-    - GDM display manager
-    - Wayland/X11/XWayland support
-13. **Enable Services**
-    - NetworkManager
-    - GDM (auto-start GUI)
+### **Phase 3: Graphics & Desktop** (15-20 minutes)
+8. **Install NVIDIA Drivers**
+   - NVIDIA proprietary drivers (RTX 3060 optimized)
+   - Vulkan support
+   - CUDA toolkit
+   - Configure kernel modules and DRM
+9. **Install GNOME Desktop**
+   - Full GNOME desktop + extra packages
+   - GDM display manager
+   - Wayland/X11/XWayland support
+   - PipeWire audio system
+   - Bluetooth support
+   - Fonts and file management tools
 
-### **Phase 5: Package Managers** (5-10 minutes)
-14. **Install AUR Helpers**
-    - yay (primary)
-    - paru (alternative)
-15. **Install Homebrew**
-    - Linux Homebrew setup
-    - Add to PATH
+### **Phase 4: Package Managers** (5-10 minutes)
+10. **Install AUR Helpers & Package Managers**
+    - yay (primary AUR helper)
+    - paru (alternative AUR helper)
+    - Homebrew (cross-platform package manager)
+    - Configure and optimize all package managers
 
-### **Phase 6: Development Environment** (20-30 minutes)
-16. **Install Java Development Tools**
-    - OpenJDK 17 & 21
-    - Set Java 17 as default
-    - Configure JAVA_HOME
-17. **Install IDEs**
-    - Visual Studio Code
-    - IntelliJ IDEA Community Edition
-18. **Install Node.js & Tools**
-    - Node.js (LTS)
-    - npm, yarn
-    - Essential global packages
+### **Phase 5: Development Environment** (20-30 minutes)
+11. **Install Development Tools**
+    - Java OpenJDK 17 & 21 (with Maven, Gradle)
+    - Node.js LTS with npm and yarn
+    - Python 3 with pip
+    - Git and GitHub CLI
+    - C/C++ toolchain (gcc, clang, cmake)
+    - Database clients and API tools
 
-### **Phase 7: Applications** (30-40 minutes)
-19. **Install Web Browser**
+### **Phase 6: Applications & Utilities** (30-40 minutes)
+12. **Install Applications**
+    - Visual Studio Code (IDE)
+    - IntelliJ IDEA Community (Java IDE)
     - Brave Browser
-20. **Install Communication**
     - Discord
-21. **Install Gaming**
-    - Steam with Proton
-    - Modrinth Launcher
-22. **Install Content Creation**
+    - Steam with Proton and lib32 support
+    - Modrinth Launcher (Minecraft)
     - OBS Studio
-23. **Install Utilities**
+    - VLC Media Player
+    - LibreOffice Suite
+    - Thunderbird Email
+    - GIMP Image Editor
+    - KeePassXC Password Manager
     - Balena Etcher
-    - GNOME Software (App Store)
-    - Timeshift
-    - fastfetch
-    - Archive tools (7-zip, unrar)
-24. **Install Editors & Terminals**
-    - Kate text editor
+13. **Install Utilities**
     - Kitty terminal
-    - Chris Titus terminal config
+    - Kate text editor
+    - Timeshift backup system
+    - fastfetch system info
+    - htop and btop system monitors
+    - nvtop (NVIDIA GPU monitor)
+    - Archive tools (p7zip, unrar)
+    - Shell enhancements (zsh, fzf, ripgrep, starship)
 
-### **Phase 8: Theming & Customization** (10-15 minutes)
-25. **Apply System Theme**
-    - Dark mode activation
-    - Blue accent colors
+### **Phase 7: Theming & Customization** (10-15 minutes)
+14. **Apply System Theme**
+    - Dark mode with blue accent colors
     - Icon themes (Papirus, Tela)
-26. **Install GNOME Extensions**
-    - User Themes
-    - Dash to Dock
-    - Arc Menu
-    - Blur My Shell
-    - Just Perfection
-27. **Setup Live Wallpapers**
-    - Install Komorebi
+    - GTK themes (Orchis)
+    - Configure default applications
+    - Font configuration
+15. **Install GNOME Extensions**
+    - Extension Manager (Flatpak)
+    - Core extensions (AppIndicator, Dash to Dock)
+    - Live wallpaper support (Komorebi)
     - Configure default wallpaper
 28. **Customize Login Screen**
     - GDM theme modifications
     - Background image
 
+### **Phase 8: Security Configuration** (5-10 minutes)
+16. **Configure Security Features**
+    - Install and configure UFW firewall (not enabled by default)
+    - Set up Fail2Ban for intrusion prevention
+    - Enable AppArmor security framework
+    - Configure system auditing (auditd)
+    - Set secure kernel parameters
+    - Create security information file for user
+
 ### **Phase 9: Post-Installation** (5-10 minutes)
-29. **System Optimization**
-    - Enable multilib repository
-    - Configure pacman (parallel downloads, colors)
-    - Set up Timeshift snapshots
-30. **Multi-Monitor Setup**
-    - Detect displays
-    - Configure layout
-    - Save configuration
-31. **Final Touches**
-    - Create user-specific configs
-    - Set default applications
-    - Generate system information
-32. **Cleanup**
-    - Remove unnecessary packages
-    - Clear package cache (partial)
-33. **Reboot Prompt**
-    - Display completion summary
+17. **System Optimization**
+    - Enable multilib repository (32-bit support)
+    - Optimize pacman (parallel downloads, colors, ILoveCandy)
+    - Configure multi-monitor support template
+    - Set default applications (Brave as default browser)
+    - Create welcome message and installation report
+    - Copy installation logs
+    - Clean package cache
+18. **Reboot Prompt**
+    - Display comprehensive installation summary
     - Prompt for system reboot
 
 ---
@@ -272,9 +277,10 @@ The installer follows this automated workflow:
 ```
 ElysiumArch/
 ├── install.sh                      # Main installer script (entry point)
+├── bootstrap.sh                    # Bootstrap script for fresh Arch ISO
 │
 ├── modules/                        # Modular installation scripts
-│   ├── 01-network.sh              # WiFi/Ethernet configuration
+│   ├── 01-network.sh              # Network verification (not configuration)
 │   ├── 02-localization.sh         # Language, timezone, keyboard
 │   ├── 03-disk.sh                 # Disk selection and partitioning
 │   ├── 04-base-system.sh          # Base Arch installation
