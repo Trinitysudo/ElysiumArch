@@ -6,8 +6,8 @@
 
 print_info "Installing AUR helpers and package managers..."
 
-# Install base-devel for building packages
-arch-chroot /mnt pacman -S --noconfirm --needed base-devel git
+# Install base-devel and sudo for building packages
+arch-chroot /mnt pacman -S --noconfirm --needed base-devel git sudo
 
 # Install yay-bin as user (precompiled binary - much faster)
 print_info "Installing yay (AUR helper)..."
