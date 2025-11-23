@@ -63,8 +63,40 @@ arch-chroot /mnt pacman -S --noconfirm --needed kitty fastfetch
 
 print_success "Kitty and fastfetch installed"
 
-# Configure fastfetch to auto-run in Kitty
-print_info "Configuring fastfetch auto-start..."
+# Install ChrisTitus mybash config (the REAL setup)
+print_info "Installing ChrisTitus mybash configuration..."
+arch-chroot /mnt sudo -u $USERNAME bash << 'CHRISTITUS_EOF'
+set -e
+cd ~
+mkdir -p ~/build
+cd ~/build
+
+# Clone ChrisTitus mybash repo
+if [ ! -d "mybash" ]; then
+    git clone https://github.com/christitustech/mybash || {
+        echo "Failed to clone mybash repo"
+        exit 1
+    }
+fi
+
+cd mybash
+# Run setup script
+chmod +x setup.sh
+./setup.sh || {
+    echo "mybash setup failed, but continuing..."
+}
+
+echo "ChrisTitus mybash installed successfully"
+CHRISTITUS_EOF
+
+if [[ $? -eq 0 ]]; then
+    print_success "ChrisTitus mybash configuration installed"
+else
+    print_warning "ChrisTitus mybash failed (optional), continuing with manual config..."
+fi
+
+# Configure fastfetch and Kitty anyway
+print_info "Configuring Kitty terminal..."
 mkdir -p /mnt/home/$USERNAME/.config/kitty
 mkdir -p /mnt/home/$USERNAME/.config/fastfetch
 
@@ -165,10 +197,26 @@ listen_on unix:/tmp/kitty
 # Bell
 enable_audio_bell no
 visual_bell_duration 0.0
-
-# Startup - run fastfetch then shell
-shell bash -c "fastfetch 2>/dev/null || true; exec bash"
 KITTY_EOF
+
+# Create Kitty startup script to run fastfetch properly
+cat > /mnt/home/$USERNAME/.config/kitty/kitty-startup.sh << 'KITTY_STARTUP_EOF'
+#!/bin/bash
+# Run fastfetch on Kitty startup
+if command -v fastfetch &>/dev/null; then
+    fastfetch
+fi
+exec bash
+KITTY_STARTUP_EOF
+
+chmod +x /mnt/home/$USERNAME/.config/kitty/kitty-startup.sh
+
+# Add shell config to Kitty
+cat >> /mnt/home/$USERNAME/.config/kitty/kitty.conf << 'KITTY_SHELL_EOF'
+
+# Run fastfetch on startup
+shell ~/.config/kitty/kitty-startup.sh
+KITTY_SHELL_EOF
 
 # Create beautiful fastfetch config (ChrisTitus style - clean and informative)
 cat > /mnt/home/$USERNAME/.config/fastfetch/config.jsonc << 'FASTFETCH_EOF'
