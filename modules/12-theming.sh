@@ -7,7 +7,7 @@
 print_info "Applying dark theme with Tela dark icons..."
 
 # Install Tela icon theme (beautiful, flat, colorful dark icons)
-print_info "Installing Tela dark icon theme..."
+print_info "Installing Tela dark icon theme (only dark variant)..."
 arch-chroot /mnt sudo -u $USERNAME bash -c "yay -S --noconfirm tela-icon-theme"
 
 if [[ $? -ne 0 ]]; then
@@ -15,7 +15,25 @@ if [[ $? -ne 0 ]]; then
     exit 1
 fi
 
-print_success "Tela dark icon theme installed"
+# Remove all non-dark variants to save space
+print_info "Removing light Tela variants (keeping only dark)..."
+TELA_DIR="/mnt/usr/share/icons"
+if [ -d "$TELA_DIR" ]; then
+    # Remove all Tela variants except dark ones
+    arch-chroot /mnt bash << 'CLEANUP_EOF'
+cd /usr/share/icons
+# Keep only Tela-dark and Tela-black-dark, remove all others
+for theme in Tela Tela-blue Tela-green Tela-grey Tela-orange Tela-pink Tela-purple Tela-red Tela-yellow Tela-brown Tela-black Tela-blue-dark Tela-green-dark Tela-grey-dark Tela-orange-dark Tela-pink-dark Tela-purple-dark Tela-red-dark Tela-yellow-dark Tela-brown-dark; do
+    if [ -d "$theme" ]; then
+        rm -rf "$theme"
+        echo "Removed: $theme"
+    fi
+done
+echo "Kept: Tela-dark and Tela-black-dark only"
+CLEANUP_EOF
+fi
+
+print_success "Tela dark icon theme installed (light variants removed)"
 
 # Apply GNOME dark theme with blue accent
 print_info "Configuring dark theme with blue accent..."
