@@ -18,12 +18,7 @@ arch-chroot /mnt chown $USERNAME:$USERNAME /home/$USERNAME/aur-build
 
 # Clone and build as user in one command
 print_info "Cloning and building yay..."
-arch-chroot /mnt runuser -u $USERNAME -- bash -c '
-cd /home/'"$USERNAME"'/aur-build
-git clone https://aur.archlinux.org/yay.git
-cd yay
-makepkg -s --noconfirm --needed
-'
+arch-chroot /mnt sudo -u $USERNAME bash -c "cd /home/$USERNAME/aur-build && git clone https://aur.archlinux.org/yay.git && cd yay && makepkg -s --noconfirm --needed"
 
 YAY_BUILD_EXIT=$?
 
@@ -72,12 +67,7 @@ arch-chroot /mnt chown $USERNAME:$USERNAME /home/$USERNAME/aur-build
 
 # Clone and build as user in one command
 print_info "Cloning and building paru..."
-arch-chroot /mnt runuser -u $USERNAME -- bash -c '
-cd /home/'"$USERNAME"'/aur-build
-git clone https://aur.archlinux.org/paru.git
-cd paru
-makepkg -s --noconfirm --needed
-'
+arch-chroot /mnt sudo -u $USERNAME bash -c "cd /home/$USERNAME/aur-build && git clone https://aur.archlinux.org/paru.git && cd paru && makepkg -s --noconfirm --needed"
 
 PARU_BUILD_EXIT=$?
 
