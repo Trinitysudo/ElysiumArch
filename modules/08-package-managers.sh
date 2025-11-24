@@ -51,26 +51,44 @@ else
 fi
 
 # Ensure sudoers is configured with NOPASSWD for wheel group
-print_info "Verifying sudo configuration..."
-if ! grep -q "^%wheel ALL=(ALL:ALL) NOPASSWD: ALL" /mnt/etc/sudoers; then
-    print_warning "NOPASSWD not configured - fixing sudoers..."
-    sed -i 's/^%wheel ALL=(ALL:ALL) ALL/# %wheel ALL=(ALL:ALL) ALL/' /mnt/etc/sudoers
-    sed -i 's/^# %wheel ALL=(ALL:ALL) NOPASSWD: ALL/%wheel ALL=(ALL:ALL) NOPASSWD: ALL/' /mnt/etc/sudoers
-fi
+print_info "Configuring passwordless sudo for installation..."
 
-# Test sudo works
-print_info "Testing sudo -u $USERNAME..."
-if ! arch-chroot /mnt sudo -u "$USERNAME" whoami &>/dev/null; then
-    print_error "sudo -u $USERNAME is not working"
-    print_info "Sudoers wheel lines:"
-    grep wheel /mnt/etc/sudoers || true
-    print_info "User groups:"
-    arch-chroot /mnt groups "$USERNAME" || true
-    print_info "Testing direct command..."
-    arch-chroot /mnt su - "$USERNAME" -c "whoami" || true
+# Create sudoers drop-in file for passwordless installation (more reliable)
+cat > /mnt/etc/sudoers.d/10-installer << 'SUDOERS_EOF'
+# Temporary passwordless sudo for installation
+%wheel ALL=(ALL:ALL) NOPASSWD: ALL
+SUDOERS_EOF
+
+chmod 440 /mnt/etc/sudoers.d/10-installer
+
+# Also update main sudoers as backup
+sed -i 's/^%wheel ALL=(ALL:ALL) ALL/# %wheel ALL=(ALL:ALL) ALL/' /mnt/etc/sudoers
+sed -i 's/^# %wheel ALL=(ALL:ALL) NOPASSWD: ALL/%wheel ALL=(ALL:ALL) NOPASSWD: ALL/' /mnt/etc/sudoers
+
+print_success "Passwordless sudo configured"
+
+# Verify sudoers configuration
+print_info "Verifying sudoers configuration..."
+if grep -q "^%wheel ALL=(ALL:ALL) NOPASSWD: ALL" /mnt/etc/sudoers.d/10-installer; then
+    print_success "Sudoers drop-in file is correct"
+else
+    print_error "Sudoers drop-in file is incorrect!"
+    cat /mnt/etc/sudoers.d/10-installer
     exit 1
 fi
-print_success "sudo configured and working"
+
+# Test sudo works without password
+print_info "Testing passwordless sudo for $USERNAME..."
+if arch-chroot /mnt sudo -u "$USERNAME" sudo -n true 2>/dev/null; then
+    print_success "Passwordless sudo is working correctly"
+else
+    print_error "Passwordless sudo is NOT working!"
+    print_info "Sudoers configuration:"
+    cat /mnt/etc/sudoers.d/10-installer
+    print_info "User groups:"
+    arch-chroot /mnt groups "$USERNAME"
+    exit 1
+fi
 
 # Helper function to run a command strictly as the normal user inside chroot
 run_as_user() {
@@ -99,6 +117,11 @@ rm -rf /home/$USERNAME/aur-build
 mkdir -p /home/$USERNAME/aur-build
 chown -R $USERNAME:$USERNAME /home/$USERNAME/aur-build
 chmod 755 /home/$USERNAME/aur-build
+
+# Configure makepkg to not use sudo during build
+mkdir -p /home/$USERNAME/.config
+echo "BUILDENV=(!distcc color !ccache check !sign)" > /home/$USERNAME/.makepkg.conf
+chown $USERNAME:$USERNAME /home/$USERNAME/.makepkg.conf
 EOF
 
     print_info "Cloning yay-bin (precompiled)..."

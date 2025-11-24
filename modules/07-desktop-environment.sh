@@ -86,15 +86,7 @@ arch-chroot /mnt pacman -S --noconfirm --needed \
 
 print_success "Essential tools installed"
 
-# Install SDDM (display manager for Hyprland)
-print_info "Installing SDDM display manager..."
-arch-chroot /mnt pacman -S --noconfirm --needed \
-    sddm \
-    qt5-graphicaleffects \
-    qt5-quickcontrols2 \
-    qt5-svg
-
-print_success "SDDM installed"
+# No display manager needed - using TTY autologin (proper Hyprland way)
 
 # Install audio system (PipeWire)
 print_info "Installing audio system..."
@@ -144,18 +136,28 @@ print_success "Printing support installed"
 # Enable services
 print_info "Enabling desktop services..."
 
-# Configure SDDM autologin
-print_info "Configuring SDDM autologin for $USERNAME..."
-mkdir -p /mnt/etc/sddm.conf.d
-cat > /mnt/etc/sddm.conf.d/autologin.conf << EOF
-[Autologin]
-User=$USERNAME
-Session=hyprland
+# Configure TTY autologin (proper way for Hyprland)
+print_info "Configuring TTY autologin for $USERNAME..."
+mkdir -p /mnt/etc/systemd/system/getty@tty1.service.d
+cat > /mnt/etc/systemd/system/getty@tty1.service.d/autologin.conf << EOF
+[Service]
+ExecStart=
+ExecStart=-/sbin/agetty -o '-p -f -- \\u' --noclear --autologin $USERNAME %I \$TERM
 EOF
 
-# Enable SDDM
-arch-chroot /mnt systemctl enable sddm
-print_success "SDDM enabled with autologin"
+# Add Hyprland autostart to user's shell profile
+print_info "Configuring Hyprland to start automatically..."
+cat >> /mnt/home/$USERNAME/.bash_profile << 'HYPR_START'
+
+# Start Hyprland on TTY1 login
+if [ -z "$DISPLAY" ] && [ "$XDG_VTNR" -eq 1 ]; then
+  exec Hyprland
+fi
+HYPR_START
+
+chown $USERNAME:$USERNAME /mnt/home/$USERNAME/.bash_profile
+
+print_success "TTY autologin configured - Hyprland will start automatically"
 
 # Enable Bluetooth
 arch-chroot /mnt systemctl enable bluetooth
@@ -326,41 +328,18 @@ HYPR_EOF
     print_success "Basic Hyprland config created"
 fi
 
-# Create Hyprland startup wrapper script
-print_info "Creating Hyprland startup script..."
-cat > /mnt/usr/local/bin/start-hyprland.sh << 'WRAPPER_EOF'
-#!/bin/bash
-# Start Hyprland with proper environment
+# Set environment variables for Wayland
+print_info "Setting up Wayland environment variables..."
+cat >> /mnt/home/$USERNAME/.bash_profile << 'ENV_VARS'
 
-# Set XDG environment
+# Wayland environment variables
 export XDG_SESSION_TYPE=wayland
 export XDG_SESSION_DESKTOP=Hyprland
 export XDG_CURRENT_DESKTOP=Hyprland
-
-# Set Qt/GTK Wayland
 export QT_QPA_PLATFORM=wayland
 export GDK_BACKEND=wayland
 export MOZ_ENABLE_WAYLAND=1
-
-# Start Hyprland
-exec Hyprland
-WRAPPER_EOF
-
-chmod +x /mnt/usr/local/bin/start-hyprland.sh
-
-# Create Hyprland desktop session file for SDDM
-print_info "Creating Hyprland session file..."
-mkdir -p /mnt/usr/share/wayland-sessions
-cat > /mnt/usr/share/wayland-sessions/hyprland.desktop << 'SESSION_EOF'
-[Desktop Entry]
-Name=Hyprland
-Comment=An intelligent dynamic tiling Wayland compositor
-Exec=/usr/local/bin/start-hyprland.sh
-DesktopNames=Hyprland
-Type=Application
-SESSION_EOF
-
-print_success "Hyprland session file created"
+ENV_VARS
 
 # Ensure all config files have proper ownership
 print_info "Setting proper ownership for all Hyprland configs..."
