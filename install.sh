@@ -161,7 +161,6 @@ EOF
     # Phase 7: Theming & Customization
     print_phase "PHASE 7: THEMING & CUSTOMIZATION"
     run_module "${SCRIPT_DIR}/modules/12-theming.sh"
-    run_module "${SCRIPT_DIR}/modules/13-extensions.sh"
     
     # Phase 8: Security Configuration
     print_phase "PHASE 8: SECURITY CONFIGURATION"
