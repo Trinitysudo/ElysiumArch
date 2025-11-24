@@ -6,9 +6,7 @@
 
 print_info "Applying blue/black theme for Hyprland..."
 
-# Install Tela icon theme (for file manager)
-print_info "Installing Tela dark icon theme..."
-arch-chroot /mnt sudo -u $USERNAME bash -c "yay -S --noconfirm tela-icon-theme" || print_warning "Tela optional, continuing..."
+# JaKooLit includes his own icon theme, we don't need to install extra icons
 
 # Download Arch Linux wallpapers
 print_info "Downloading Arch Linux wallpapers..."
@@ -187,7 +185,6 @@ cat > /mnt/home/$USERNAME/.config/rofi/config.rasi << 'ROFI_EOF'
 configuration {
     modi: "drun,run,window";
     show-icons: true;
-    icon-theme: "Tela-dark";
     font: "JetBrainsMono Nerd Font 12";
     display-drun: " Apps";
     display-run: " Run";
