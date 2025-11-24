@@ -85,19 +85,27 @@ if arch-chroot /mnt test -x /usr/bin/yay; then
 else
     print_info "Installing yay (AUR helper)..."
 
-    # Prepare user build workspace
-    run_as_user "mkdir -p ~/aur-build && rm -rf ~/aur-build/yay-bin ~/aur-build/yay"
+    # Ensure home directory exists and has proper permissions
+    mkdir -p "/mnt/home/$USERNAME"
+    chown -R "$USERNAME:$USERNAME" "/mnt/home/$USERNAME"
+    
+    # Create build directory as root, then chown it
+    BUILD_DIR="/mnt/home/$USERNAME/aur-build"
+    rm -rf "$BUILD_DIR"
+    mkdir -p "$BUILD_DIR"
+    chown -R "$USERNAME:$USERNAME" "$BUILD_DIR"
 
-    print_info "Cloning yay-bin (precompiled) ..."
-    if run_as_user "cd ~/aur-build && git clone https://aur.archlinux.org/yay-bin.git"; then
+    print_info "Cloning yay-bin (precompiled)..."
+    if arch-chroot /mnt sudo -u "$USERNAME" bash -c "cd ~/aur-build && git clone https://aur.archlinux.org/yay-bin.git"; then
         print_info "Building yay-bin package..."
-        if run_as_user "cd ~/aur-build/yay-bin && makepkg -si --noconfirm --needed"; then
+        if arch-chroot /mnt sudo -u "$USERNAME" bash -c "cd ~/aur-build/yay-bin && makepkg -si --noconfirm --needed"; then
             print_success "yay-bin installed"
         else
-            print_warning "yay-bin build failed – falling back to source build of yay"
-            run_as_user "rm -rf ~/aur-build/yay-bin"
-            if run_as_user "cd ~/aur-build && git clone https://aur.archlinux.org/yay.git" && \
-               run_as_user "cd ~/aur-build/yay && makepkg -si --noconfirm --needed"; then
+            print_warning "yay-bin build failed – falling back to source build"
+            rm -rf "$BUILD_DIR/yay-bin"
+            
+            if arch-chroot /mnt sudo -u "$USERNAME" bash -c "cd ~/aur-build && git clone https://aur.archlinux.org/yay.git" && \
+               arch-chroot /mnt sudo -u "$USERNAME" bash -c "cd ~/aur-build/yay && makepkg -si --noconfirm --needed"; then
                 print_success "yay (source) installed"
             else
                 print_error "Failed to build yay from both yay-bin and source"
@@ -106,9 +114,9 @@ else
             fi
         fi
     else
-        print_warning "Failed cloning yay-bin – attempting cloning yay (source)"
-        if run_as_user "cd ~/aur-build && git clone https://aur.archlinux.org/yay.git" && \
-           run_as_user "cd ~/aur-build/yay && makepkg -si --noconfirm --needed"; then
+        print_warning "Failed cloning yay-bin – attempting yay (source)"
+        if arch-chroot /mnt sudo -u "$USERNAME" bash -c "cd ~/aur-build && git clone https://aur.archlinux.org/yay.git" && \
+           arch-chroot /mnt sudo -u "$USERNAME" bash -c "cd ~/aur-build/yay && makepkg -si --noconfirm --needed"; then
             print_success "yay (source) installed"
         else
             print_error "Unable to clone/build yay"
@@ -117,8 +125,8 @@ else
         fi
     fi
 
-    # Cleanup build dir (leave only if debugging needed)
-    run_as_user "rm -rf ~/aur-build"
+    # Cleanup build dir
+    rm -rf "$BUILD_DIR"
 fi
 
 # Final yay verification (ensure not root)

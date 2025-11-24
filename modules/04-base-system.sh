@@ -93,7 +93,22 @@ log_info "Base: Root password configured"
 
 # Create user account
 print_info "Creating user account: $USERNAME..."
-arch-chroot /mnt useradd -m -G wheel,audio,video,storage,optical,input,seat -s /bin/bash "$USERNAME"
+
+# Check if user already exists
+if arch-chroot /mnt id "$USERNAME" &>/dev/null; then
+    print_warning "User $USERNAME already exists, updating settings..."
+    arch-chroot /mnt usermod -aG wheel,audio,video,storage,optical,input,seat "$USERNAME"
+    arch-chroot /mnt chsh -s /bin/bash "$USERNAME"
+else
+    # Remove home directory if it exists without a user (from failed install)
+    if [[ -d "/mnt/home/$USERNAME" ]]; then
+        print_warning "Cleaning up orphaned home directory..."
+        rm -rf "/mnt/home/$USERNAME"
+    fi
+    
+    arch-chroot /mnt useradd -m -G wheel,audio,video,storage,optical,input,seat -s /bin/bash "$USERNAME"
+fi
+
 echo "$USERNAME:$USER_PASSWORD" | arch-chroot /mnt chpasswd
 print_success "User account created: $USERNAME (with Wayland permissions)"
 log_info "Base: User account created: $USERNAME"
