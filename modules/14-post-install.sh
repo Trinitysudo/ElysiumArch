@@ -9,8 +9,13 @@ print_info "Running post-installation configuration..."
 # Ensure Hyprland autostart files are correct (final check)
 print_info "Ensuring Hyprland autostart configuration..."
 
-# Create/recreate .profile for Hyprland autostart
-cat > /mnt/home/$USERNAME/.profile << 'PROFILE_START'
+# Detect if running in VM
+if systemd-detect-virt --quiet 2>/dev/null || grep -q "hypervisor" /proc/cpuinfo 2>/dev/null; then
+    VIRT_TYPE=$(systemd-detect-virt 2>/dev/null || echo "VM")
+    print_info "Virtual machine detected: $VIRT_TYPE - using VM-optimized settings"
+    
+    # Create VM-optimized .profile
+    cat > /mnt/home/$USERNAME/.profile << 'PROFILE_VM'
 # ~/.profile
 
 # Wayland environment variables
@@ -21,11 +26,41 @@ export QT_QPA_PLATFORM=wayland
 export GDK_BACKEND=wayland
 export MOZ_ENABLE_WAYLAND=1
 
+# VM-specific Hyprland settings (software rendering)
+export WLR_NO_HARDWARE_CURSORS=1
+export WLR_RENDERER_ALLOW_SOFTWARE=1
+export LIBGL_ALWAYS_SOFTWARE=1
+
+# Start Hyprland on TTY1 login
+if [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
+  exec Hyprland
+fi
+PROFILE_VM
+else
+    # Create regular .profile for physical hardware
+    cat > /mnt/home/$USERNAME/.profile << 'PROFILE_START'
+# ~/.profile
+
+# Wayland environment variables
+export XDG_SESSION_TYPE=wayland
+export XDG_SESSION_DESKTOP=Hyprland
+export XDG_CURRENT_DESKTOP=Hyprland
+export QT_QPA_PLATFORM=wayland
+export GDK_BACKEND=wayland
+export MOZ_ENABLE_WAYLAND=1
+
+# NVIDIA-specific environment variables (safe for all GPUs)
+export LIBVA_DRIVER_NAME=nvidia
+export GBM_BACKEND=nvidia-drm
+export __GLX_VENDOR_LIBRARY_NAME=nvidia
+export WLR_NO_HARDWARE_CURSORS=1
+
 # Start Hyprland on TTY1 login
 if [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
   exec Hyprland
 fi
 PROFILE_START
+fi
 
 # Ensure .bash_profile sources .profile
 if ! grep -q "\.profile" /mnt/home/$USERNAME/.bash_profile 2>/dev/null; then
