@@ -33,7 +33,9 @@ pacstrap /mnt \
     networkmanager dhcpcd iwd \
     sudo nano vim \
     git wget curl \
-    man-db man-pages
+    man-db man-pages \
+    ntfs-3g \
+    ufw
 
 print_success "Essential packages installed"
 log_success "Base: Essential packages installed"
@@ -110,6 +112,14 @@ print_success "NetworkManager enabled"
 # Enable DHC PCD for fallback
 arch-chroot /mnt systemctl enable dhcpcd
 print_success "DHCPCD enabled"
+
+# Enable and configure firewall
+print_info "Configuring firewall (UFW)..."
+arch-chroot /mnt systemctl enable ufw
+arch-chroot /mnt ufw default deny incoming
+arch-chroot /mnt ufw default allow outgoing
+arch-chroot /mnt ufw --force enable
+print_success "Firewall enabled and configured"
 
 print_success "Base system configuration complete"
 log_success "Base system installation and configuration completed"

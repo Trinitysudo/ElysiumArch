@@ -194,6 +194,9 @@ exec-once = waybar
 exec-once = dunst
 exec-once = /usr/lib/polkit-kde-authentication-agent-1
 exec-once = swaybg -i ~/Pictures/wallpaper.png -m fill
+exec-once = nm-applet --indicator
+exec-once = blueman-applet
+exec-once = cliphist store
 
 input {
     kb_layout = us

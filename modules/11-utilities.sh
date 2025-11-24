@@ -6,6 +6,18 @@
 
 print_info "Installing system utilities..."
 
+# Install Kate editor
+print_info "Installing Kate text editor..."
+arch-chroot /mnt pacman -S --noconfirm --needed kate
+
+print_success "Kate installed"
+
+# Install fastfetch
+print_info "Installing fastfetch..."
+arch-chroot /mnt pacman -S --noconfirm --needed fastfetch
+
+print_success "fastfetch installed"
+
 # Install Timeshift (from AUR using yay)
 print_info "Installing Timeshift backup tool..."
 arch-chroot /mnt su - $USERNAME -c "yay -S --noconfirm --needed timeshift"

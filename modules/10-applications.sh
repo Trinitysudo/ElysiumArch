@@ -419,5 +419,15 @@ else
     print_warning "Failed to install Discord (optional)"
 fi
 
+# Install Modrinth Launcher
+print_info "Installing Modrinth Launcher..."
+arch-chroot /mnt su - $USERNAME -c "yay -S --noconfirm --needed modrinth-app-bin"
+
+if [[ $? -eq 0 ]]; then
+    print_success "Modrinth Launcher installed"
+else
+    print_warning "Failed to install Modrinth (optional)"
+fi
+
 print_success "Applications installation complete"
 log_success "Applications: All applications installed"

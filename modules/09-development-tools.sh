@@ -6,14 +6,28 @@
 
 print_info "Installing development tools..."
 
-# Install Java Development Kit (latest)
-print_info "Installing Java JDK 21..."
+# Install Java Development Kits
+print_info "Installing Java JDK 17 and 21..."
 arch-chroot /mnt pacman -S --noconfirm --needed \
+    jdk17-openjdk \
     jdk21-openjdk \
-    jre21-openjdk
+    jre17-openjdk \
+    jre21-openjdk \
+    maven \
+    gradle
 
-print_success "Java JDK installed"
-log_success "Development: Java JDK 21 installed"
+print_success "Java JDKs installed (17 and 21)"
+log_success "Development: Java JDK 17 and 21 with Maven and Gradle installed"
+
+# Set Java 21 as default
+print_info "Setting Java 21 as default..."
+arch-chroot /mnt archlinux-java set java-21-openjdk
+print_success "Java 21 set as default"
+
+# Verify Java installation
+JAVA_VERSION=$(arch-chroot /mnt java -version 2>&1 | head -n 1)
+print_info "Java version: $JAVA_VERSION"
+log_info "Development: $JAVA_VERSION"
 
 # Install Node.js and npm
 print_info "Installing Node.js and npm..."
