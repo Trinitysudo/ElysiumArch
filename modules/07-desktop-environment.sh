@@ -145,15 +145,27 @@ ExecStart=
 ExecStart=-/sbin/agetty -o '-p -f -- \\u' --noclear --autologin $USERNAME %I \$TERM
 EOF
 
-# Create .bash_profile with Hyprland autostart
+# Create .bash_profile AND .profile with Hyprland autostart
 print_info "Configuring Hyprland to start automatically..."
-cat > /mnt/home/$USERNAME/.bash_profile << 'HYPR_START'
+
+# Create .bash_profile
+cat > /mnt/home/$USERNAME/.bash_profile << 'BASH_PROFILE'
 # ~/.bash_profile
+
+# Source .profile for Hyprland startup
+if [ -f ~/.profile ]; then
+    . ~/.profile
+fi
 
 # Get the aliases and functions
 if [ -f ~/.bashrc ]; then
     . ~/.bashrc
 fi
+BASH_PROFILE
+
+# Create .profile with Hyprland autostart
+cat > /mnt/home/$USERNAME/.profile << 'PROFILE_START'
+# ~/.profile
 
 # Wayland environment variables
 export XDG_SESSION_TYPE=wayland
@@ -164,13 +176,15 @@ export GDK_BACKEND=wayland
 export MOZ_ENABLE_WAYLAND=1
 
 # Start Hyprland on TTY1 login
-if [ -z "$DISPLAY" ] && [ "$XDG_VTNR" -eq 1 ]; then
+if [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
   exec Hyprland
 fi
-HYPR_START
+PROFILE_START
 
 chown $USERNAME:$USERNAME /mnt/home/$USERNAME/.bash_profile
+chown $USERNAME:$USERNAME /mnt/home/$USERNAME/.profile
 chmod 644 /mnt/home/$USERNAME/.bash_profile
+chmod 644 /mnt/home/$USERNAME/.profile
 
 print_success "TTY autologin configured - Hyprland will start automatically"
 
