@@ -85,27 +85,33 @@ if arch-chroot /mnt test -x /usr/bin/yay; then
 else
     print_info "Installing yay (AUR helper)..."
 
-    # Ensure home directory exists and has proper permissions
-    mkdir -p "/mnt/home/$USERNAME"
-    chown -R "$USERNAME:$USERNAME" "/mnt/home/$USERNAME"
-    
-    # Create build directory as root, then chown it
-    BUILD_DIR="/mnt/home/$USERNAME/aur-build"
-    rm -rf "$BUILD_DIR"
-    mkdir -p "$BUILD_DIR"
-    chown -R "$USERNAME:$USERNAME" "$BUILD_DIR"
+    # Ensure home directory exists with proper permissions
+    print_info "Setting up build environment for $USERNAME..."
+    arch-chroot /mnt bash << EOF
+set -e
+# Ensure home exists
+mkdir -p /home/$USERNAME
+chown -R $USERNAME:$USERNAME /home/$USERNAME
+chmod 755 /home/$USERNAME
+
+# Create build directory
+rm -rf /home/$USERNAME/aur-build
+mkdir -p /home/$USERNAME/aur-build
+chown -R $USERNAME:$USERNAME /home/$USERNAME/aur-build
+chmod 755 /home/$USERNAME/aur-build
+EOF
 
     print_info "Cloning yay-bin (precompiled)..."
-    if arch-chroot /mnt sudo -u "$USERNAME" bash -c "cd ~/aur-build && git clone https://aur.archlinux.org/yay-bin.git"; then
+    if arch-chroot /mnt sudo -u "$USERNAME" bash -c "cd /home/$USERNAME/aur-build && git clone https://aur.archlinux.org/yay-bin.git"; then
         print_info "Building yay-bin package..."
-        if arch-chroot /mnt sudo -u "$USERNAME" bash -c "cd ~/aur-build/yay-bin && makepkg -si --noconfirm --needed"; then
+        if arch-chroot /mnt sudo -u "$USERNAME" bash -c "cd /home/$USERNAME/aur-build/yay-bin && makepkg -si --noconfirm --needed"; then
             print_success "yay-bin installed"
         else
             print_warning "yay-bin build failed – falling back to source build"
-            rm -rf "$BUILD_DIR/yay-bin"
+            arch-chroot /mnt rm -rf "/home/$USERNAME/aur-build/yay-bin"
             
-            if arch-chroot /mnt sudo -u "$USERNAME" bash -c "cd ~/aur-build && git clone https://aur.archlinux.org/yay.git" && \
-               arch-chroot /mnt sudo -u "$USERNAME" bash -c "cd ~/aur-build/yay && makepkg -si --noconfirm --needed"; then
+            if arch-chroot /mnt sudo -u "$USERNAME" bash -c "cd /home/$USERNAME/aur-build && git clone https://aur.archlinux.org/yay.git" && \
+               arch-chroot /mnt sudo -u "$USERNAME" bash -c "cd /home/$USERNAME/aur-build/yay && makepkg -si --noconfirm --needed"; then
                 print_success "yay (source) installed"
             else
                 print_error "Failed to build yay from both yay-bin and source"
@@ -115,8 +121,8 @@ else
         fi
     else
         print_warning "Failed cloning yay-bin – attempting yay (source)"
-        if arch-chroot /mnt sudo -u "$USERNAME" bash -c "cd ~/aur-build && git clone https://aur.archlinux.org/yay.git" && \
-           arch-chroot /mnt sudo -u "$USERNAME" bash -c "cd ~/aur-build/yay && makepkg -si --noconfirm --needed"; then
+        if arch-chroot /mnt sudo -u "$USERNAME" bash -c "cd /home/$USERNAME/aur-build && git clone https://aur.archlinux.org/yay.git" && \
+           arch-chroot /mnt sudo -u "$USERNAME" bash -c "cd /home/$USERNAME/aur-build/yay && makepkg -si --noconfirm --needed"; then
             print_success "yay (source) installed"
         else
             print_error "Unable to clone/build yay"
@@ -126,7 +132,7 @@ else
     fi
 
     # Cleanup build dir
-    rm -rf "$BUILD_DIR"
+    arch-chroot /mnt rm -rf "/home/$USERNAME/aur-build"
 fi
 
 # Final yay verification (ensure not root)
