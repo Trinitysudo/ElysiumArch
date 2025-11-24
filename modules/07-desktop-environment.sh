@@ -68,7 +68,6 @@ arch-chroot /mnt pacman -S --noconfirm --needed \
     slurp \
     swappy \
     wf-recorder \
-    mako \
     brightnessctl \
     playerctl \
     pavucontrol \
@@ -76,17 +75,24 @@ arch-chroot /mnt pacman -S --noconfirm --needed \
     blueman \
     thunar \
     thunar-archive-plugin \
+    thunar-volman \
     file-roller \
     gvfs \
     gvfs-mtp \
     gvfs-nfs \
-    gvfs-smb
+    gvfs-smb \
+    xdg-user-dirs \
+    xdg-utils
 
 print_success "Essential tools installed"
 
 # Install SDDM (display manager for Hyprland)
 print_info "Installing SDDM display manager..."
-arch-chroot /mnt pacman -S --noconfirm --needed sddm
+arch-chroot /mnt pacman -S --noconfirm --needed \
+    sddm \
+    qt5-graphicaleffects \
+    qt5-quickcontrols2 \
+    qt5-svg
 
 print_success "SDDM installed"
 
@@ -189,6 +195,10 @@ if [[ $? -eq 0 ]]; then
 else
     print_warning "JaKooLit dotfiles failed, will use basic config"
 fi
+
+# Create user directories
+print_info "Creating user directories..."
+arch-chroot /mnt sudo -u $USERNAME xdg-user-dirs-update
 
 # Always ensure Hyprland config exists and is working
 print_info "Ensuring Hyprland configuration is present..."
@@ -351,6 +361,11 @@ Type=Application
 SESSION_EOF
 
 print_success "Hyprland session file created"
+
+# Ensure all config files have proper ownership
+print_info "Setting proper ownership for all Hyprland configs..."
+chown -R $USERNAME:$USERNAME /mnt/home/$USERNAME/.config 2>/dev/null || true
+chown -R $USERNAME:$USERNAME /mnt/home/$USERNAME/build 2>/dev/null || true
 
 print_success "Hyprland installation complete"
 log_success "Desktop: Hyprland with amazing blue/black theme installed"
