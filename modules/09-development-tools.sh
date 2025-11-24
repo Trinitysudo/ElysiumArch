@@ -6,28 +6,14 @@
 
 print_info "Installing development tools..."
 
-# Install Java Development Kits
-print_info "Installing Java JDK 17 and 21..."
+# Install Java Development Kit (latest)
+print_info "Installing Java JDK 21..."
 arch-chroot /mnt pacman -S --noconfirm --needed \
-    jdk17-openjdk \
     jdk21-openjdk \
-    jre17-openjdk \
-    jre21-openjdk \
-    maven \
-    gradle
+    jre21-openjdk
 
-print_success "Java JDKs installed"
-log_success "Development: Java JDK 17 and 21 installed"
-
-# Set Java 17 as default
-print_info "Setting Java 17 as default..."
-arch-chroot /mnt archlinux-java set java-17-openjdk
-print_success "Java 17 set as default"
-
-# Verify Java installation
-JAVA_VERSION=$(arch-chroot /mnt java -version 2>&1 | head -n 1)
-print_info "Java version: $JAVA_VERSION"
-log_info "Development: $JAVA_VERSION"
+print_success "Java JDK installed"
+log_success "Development: Java JDK 21 installed"
 
 # Install Node.js and npm
 print_info "Installing Node.js and npm..."
@@ -54,16 +40,12 @@ arch-chroot /mnt pacman -S --noconfirm --needed \
 
 print_success "Python tools installed"
 
-# Install C/C++ development tools
+# Install C/C++ development tools (minimal)
 print_info "Installing C/C++ development tools..."
 arch-chroot /mnt pacman -S --noconfirm --needed \
     gcc \
-    g++ \
-    clang \
     cmake \
-    make \
-    gdb \
-    valgrind
+    make
 
 print_success "C/C++ tools installed"
 
@@ -81,23 +63,14 @@ print_info "Git has been installed. Configure it after reboot with:"
 print_info "  git config --global user.name \"Your Name\""
 print_info "  git config --global user.email \"your.email@example.com\""
 
-# Install database clients
-print_info "Installing database clients..."
+# Install essential tools
+print_info "Installing essential tools..."
 arch-chroot /mnt pacman -S --noconfirm --needed \
-    postgresql-libs \
-    mariadb-clients
-
-print_success "Database clients installed"
-
-# Install API testing tools
-print_info "Installing API testing tools..."
-arch-chroot /mnt pacman -S --noconfirm --needed \
-    httpie \
     jq \
     curl \
     wget
 
-print_success "API tools installed"
+print_success "Essential tools installed"
 
 # Install code quality tools
 print_info "Installing code quality tools..."

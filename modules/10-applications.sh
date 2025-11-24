@@ -374,54 +374,14 @@ fi
 
 print_success "Fastfetch configured for all terminals (bash, zsh, Kitty)"
 
-# Set Kitty as default terminal for GNOME
-print_info "Setting Kitty as default terminal..."
-arch-chroot /mnt sudo -u $USERNAME bash << 'KITTY_DEFAULT_EOF'
-# Set Kitty as default terminal in GNOME
-if command -v gsettings &>/dev/null; then
-    # Create autostart script to set default terminal on first login
-    mkdir -p ~/.local/bin
-    cat > ~/.local/bin/set-kitty-default.sh << 'INNER_EOF'
-#!/bin/bash
-gsettings set org.gnome.desktop.default-applications.terminal exec 'kitty'
-gsettings set org.gnome.desktop.default-applications.terminal exec-arg ''
-# Remove this script after running once
-rm -f ~/.config/autostart/set-kitty-default.desktop
-rm -f ~/.local/bin/set-kitty-default.sh
-INNER_EOF
-    chmod +x ~/.local/bin/set-kitty-default.sh
-    
-    mkdir -p ~/.config/autostart
-    cat > ~/.config/autostart/set-kitty-default.desktop << 'AUTOSTART_EOF'
-[Desktop Entry]
-Type=Application
-Name=Set Kitty Default Terminal
-Exec=/home/$USERNAME/.local/bin/set-kitty-default.sh
-X-GNOME-Autostart-enabled=true
-NoDisplay=true
-AUTOSTART_EOF
-fi
-KITTY_DEFAULT_EOF
+# Install VLC media player
+print_info "Installing VLC media player..."
+arch-chroot /mnt pacman -S --noconfirm --needed vlc
 
-print_success "Kitty will be set as default terminal on first login"
-print_info "Open Kitty: Press Ctrl+Alt+T or search for 'Kitty' in apps"
-
-# Install media players
-print_info "Installing media players..."
-arch-chroot /mnt pacman -S --noconfirm --needed \
-    vlc \
-    mpv
-
-print_success "Media players installed"
-
-# Install image editing
-print_info "Installing GIMP..."
-arch-chroot /mnt pacman -S --noconfirm --needed gimp
-
-print_success "GIMP installed"
+print_success "VLC installed"
 
 # Install AUR applications (require yay)
-print_info "Installing AUR applications..."
+print_info "Installing essential AUR applications..."
 
 # Verify yay is available
 if ! arch-chroot /mnt su - $USERNAME -c "command -v yay" &>/dev/null; then
@@ -437,16 +397,6 @@ if [[ $? -eq 0 ]]; then
     print_success "VS Code installed"
 else
     print_warning "Failed to install VS Code (optional)"
-fi
-
-# Install IntelliJ IDEA Community
-print_info "Installing IntelliJ IDEA Community..."
-arch-chroot /mnt su - $USERNAME -c "yay -S --noconfirm --needed intellij-idea-community-edition"
-
-if [[ $? -eq 0 ]]; then
-    print_success "IntelliJ IDEA installed"
-else
-    print_warning "Failed to install IntelliJ IDEA (optional)"
 fi
 
 # Install Brave Browser
@@ -467,26 +417,6 @@ if [[ $? -eq 0 ]]; then
     print_success "Discord installed"
 else
     print_warning "Failed to install Discord (optional)"
-fi
-
-# Install Modrinth Launcher
-print_info "Installing Modrinth Launcher..."
-arch-chroot /mnt su - $USERNAME -c "yay -S --noconfirm modrinth-app-bin"
-
-if [[ $? -eq 0 ]]; then
-    print_success "Modrinth Launcher installed"
-else
-    print_warning "Failed to install Modrinth (optional)"
-fi
-
-# Install Balena Etcher
-print_info "Installing Balena Etcher..."
-arch-chroot /mnt su - $USERNAME -c "yay -S --noconfirm balena-etcher-bin"
-
-if [[ $? -eq 0 ]]; then
-    print_success "Balena Etcher installed"
-else
-    print_warning "Failed to install Balena Etcher (optional)"
 fi
 
 print_success "Applications installation complete"
