@@ -138,9 +138,18 @@ print_success "Printing support installed"
 # Enable services
 print_info "Enabling desktop services..."
 
+# Configure SDDM autologin
+print_info "Configuring SDDM autologin for $USERNAME..."
+mkdir -p /mnt/etc/sddm.conf.d
+cat > /mnt/etc/sddm.conf.d/autologin.conf << EOF
+[Autologin]
+User=$USERNAME
+Session=hyprland
+EOF
+
 # Enable SDDM
 arch-chroot /mnt systemctl enable sddm
-print_success "SDDM enabled (graphical login)"
+print_success "SDDM enabled with autologin"
 
 # Enable Bluetooth
 arch-chroot /mnt systemctl enable bluetooth
@@ -304,8 +313,21 @@ HYPR_EOF
     print_success "Basic Hyprland config created"
 fi
 
+# Create Hyprland desktop session file for SDDM
+print_info "Creating Hyprland session file..."
+mkdir -p /mnt/usr/share/wayland-sessions
+cat > /mnt/usr/share/wayland-sessions/hyprland.desktop << 'SESSION_EOF'
+[Desktop Entry]
+Name=Hyprland
+Comment=An intelligent dynamic tiling Wayland compositor
+Exec=Hyprland
+Type=Application
+SESSION_EOF
+
+print_success "Hyprland session file created"
+
 print_success "Hyprland installation complete"
 log_success "Desktop: Hyprland with amazing blue/black theme installed"
 
-print_info "Hyprland will start automatically on next boot"
+print_info "Hyprland will autologin and start automatically"
 print_info "Press SUPER+Return for terminal, SUPER+D for app launcher"
