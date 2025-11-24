@@ -339,8 +339,8 @@ chown -R $USERNAME:$USERNAME /mnt/home/$USERNAME/.config/fastfetch
 print_success "Kitty terminal configured with ChrisTitus-style theme"
 print_info "Features: Beautiful colors, Nerd Font icons, fastfetch on startup"
 
-# Also add fastfetch to bash/zsh for GNOME Terminal and other terminals
-print_info "Configuring fastfetch for other terminals..."
+# Also add fastfetch to bash for all terminal emulators
+print_info "Configuring fastfetch for bash..."
 
 # For bash
 if ! grep -q "fastfetch" /mnt/home/$USERNAME/.bashrc 2>/dev/null; then

@@ -188,12 +188,13 @@ Installed Components:
 ✓ Base Arch Linux system
 ✓ GRUB bootloader (UEFI)
 ✓ NVIDIA drivers (RTX 3060 optimized)
-✓ GNOME desktop environment
+✓ Hyprland window manager (Wayland)
+✓ SDDM display manager
+✓ Waybar + Rofi + Dunst
 ✓ Package managers: pacman, yay, paru
 ✓ Java JDK 17 & 21
 ✓ Node.js & npm
 ✓ Visual Studio Code
-✓ IntelliJ IDEA Community
 ✓ Brave Browser
 ✓ Discord
 ✓ Steam
@@ -245,8 +246,6 @@ Exec=kitty -e /home/$USERNAME/.local/bin/elysium-report.sh
 Icon=dialog-information
 Terminal=true
 Categories=System;
-X-GNOME-Autostart-enabled=true
-X-GNOME-Autostart-Delay=3
 EOF
 
 # Replace $USERNAME in desktop file

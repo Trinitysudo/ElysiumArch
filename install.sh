@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # ElysiumArch - Automated Arch Linux Installer
-# Optimized for Java Development with GNOME Desktop
+# Optimized for Java Development with Hyprland
 #
 # Author: Trinitysudo
 # GitHub: https://github.com/Trinitysudo/ElysiumArch
@@ -205,7 +205,7 @@ print_banner() {
     ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝                  
                                                         
     Automated Arch Linux Installer v1.0
-    Optimized for Java Development & GNOME
+    Optimized for Java Development & Hyprland
     
     GitHub: github.com/Trinitysudo/ElysiumArch
     
@@ -321,10 +321,10 @@ confirm_installation() {
     print_info "This installer will:"
     print_info "  • Format and partition your selected disk"
     print_info "  • Install Arch Linux base system"
-    print_info "  • Install GNOME desktop environment"
-    print_info "  • Install development tools (Java, Node.js, IDEs)"
+    print_info "  • Install Hyprland window manager (Wayland)"
+    print_info "  • Install development tools (Java, Node.js, etc.)"
     print_info "  • Install applications (Browser, Discord, Steam, etc.)"
-    print_info "  • Configure system with dark theme and customizations"
+    print_info "  • Configure system with blue/black theme"
     echo ""
     print_info "GPU Support:"
     print_info "  • NVIDIA (automatic driver installation)"
@@ -353,7 +353,7 @@ display_summary() {
     print_info "  Installation Summary"
     print_info "=========================================="
     print_info "✓ Base system installed and configured"
-    print_info "✓ GNOME desktop environment installed"
+    print_info "✓ Hyprland window manager installed"
     
     # Check GPU drivers installed
     if ! systemd-detect-virt --quiet; then
@@ -385,9 +385,9 @@ display_summary() {
     print_info "    - yay (AUR helper)"
     print_info "    - paru (AUR helper)"
     print_info "    - Homebrew"
-    print_info "✓ System themed with dark mode & blue accent"
-    print_info "✓ GNOME extensions installed and configured"
-    print_info "✓ Multi-monitor support configured"
+    print_info "✓ System themed with blue/black colors"
+    print_info "✓ Waybar, Rofi, and Dunst configured"
+    print_info "✓ Multi-monitor support ready"
     print_info "✓ Timeshift backup system enabled"
     print_info "✓ Security features configured:"
     print_info "    - UFW Firewall"
@@ -399,11 +399,11 @@ display_summary() {
     print_info "  ${LOG_FILE}"
     echo ""
     print_info "Next Steps After Reboot:"
-    print_info "  1. Log in to your user account"
-    print_info "  2. GNOME desktop will start automatically"
+    print_info "  1. Log in to your user account at SDDM"
+    print_info "  2. Hyprland will start automatically"
     print_info "  3. Update system: yay -Syu"
     print_info "  4. Create first Timeshift snapshot"
-    print_info "  5. Configure your IDEs and applications"
+    print_info "  5. Configure your applications"
     echo ""
     print_success "Thank you for using ElysiumArch!"
     echo ""

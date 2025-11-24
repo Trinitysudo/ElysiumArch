@@ -118,9 +118,10 @@ echo ""
 
 # Desktop Environment
 echo -e "${BOLD}Desktop Environment:${NC}"
-check_component "gnome" "command -v gnome-shell" "GNOME Shell"
-check_component "gdm" "systemctl is-enabled gdm" "GDM Display Manager"
-check_component "extensions" "command -v gnome-extensions" "GNOME Extensions"
+check_component "hyprland" "command -v Hyprland" "Hyprland Window Manager"
+check_component "sddm" "systemctl is-enabled sddm" "SDDM Display Manager"
+check_component "waybar" "command -v waybar" "Waybar Status Bar"
+check_component "rofi" "command -v rofi" "Rofi Launcher"
 echo ""
 
 # GPU Drivers
