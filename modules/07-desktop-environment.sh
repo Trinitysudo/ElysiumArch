@@ -145,9 +145,23 @@ ExecStart=
 ExecStart=-/sbin/agetty -o '-p -f -- \\u' --noclear --autologin $USERNAME %I \$TERM
 EOF
 
-# Add Hyprland autostart to user's shell profile
+# Create .bash_profile with Hyprland autostart
 print_info "Configuring Hyprland to start automatically..."
-cat >> /mnt/home/$USERNAME/.bash_profile << 'HYPR_START'
+cat > /mnt/home/$USERNAME/.bash_profile << 'HYPR_START'
+# ~/.bash_profile
+
+# Get the aliases and functions
+if [ -f ~/.bashrc ]; then
+    . ~/.bashrc
+fi
+
+# Wayland environment variables
+export XDG_SESSION_TYPE=wayland
+export XDG_SESSION_DESKTOP=Hyprland
+export XDG_CURRENT_DESKTOP=Hyprland
+export QT_QPA_PLATFORM=wayland
+export GDK_BACKEND=wayland
+export MOZ_ENABLE_WAYLAND=1
 
 # Start Hyprland on TTY1 login
 if [ -z "$DISPLAY" ] && [ "$XDG_VTNR" -eq 1 ]; then
@@ -156,6 +170,7 @@ fi
 HYPR_START
 
 chown $USERNAME:$USERNAME /mnt/home/$USERNAME/.bash_profile
+chmod 644 /mnt/home/$USERNAME/.bash_profile
 
 print_success "TTY autologin configured - Hyprland will start automatically"
 
@@ -327,19 +342,6 @@ HYPR_EOF
     chown $USERNAME:$USERNAME /mnt/home/$USERNAME/.config/hypr/hyprland.conf
     print_success "Basic Hyprland config created"
 fi
-
-# Set environment variables for Wayland
-print_info "Setting up Wayland environment variables..."
-cat >> /mnt/home/$USERNAME/.bash_profile << 'ENV_VARS'
-
-# Wayland environment variables
-export XDG_SESSION_TYPE=wayland
-export XDG_SESSION_DESKTOP=Hyprland
-export XDG_CURRENT_DESKTOP=Hyprland
-export QT_QPA_PLATFORM=wayland
-export GDK_BACKEND=wayland
-export MOZ_ENABLE_WAYLAND=1
-ENV_VARS
 
 # Ensure all config files have proper ownership
 print_info "Setting proper ownership for all Hyprland configs..."
