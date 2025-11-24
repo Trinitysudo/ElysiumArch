@@ -6,6 +6,49 @@
 
 print_info "Running post-installation configuration..."
 
+# Ensure Hyprland autostart files are correct (final check)
+print_info "Ensuring Hyprland autostart configuration..."
+
+# Create/recreate .profile for Hyprland autostart
+cat > /mnt/home/$USERNAME/.profile << 'PROFILE_START'
+# ~/.profile
+
+# Wayland environment variables
+export XDG_SESSION_TYPE=wayland
+export XDG_SESSION_DESKTOP=Hyprland
+export XDG_CURRENT_DESKTOP=Hyprland
+export QT_QPA_PLATFORM=wayland
+export GDK_BACKEND=wayland
+export MOZ_ENABLE_WAYLAND=1
+
+# Start Hyprland on TTY1 login
+if [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
+  exec Hyprland
+fi
+PROFILE_START
+
+# Ensure .bash_profile sources .profile
+if ! grep -q "\.profile" /mnt/home/$USERNAME/.bash_profile 2>/dev/null; then
+    cat > /mnt/home/$USERNAME/.bash_profile << 'BASH_PROFILE'
+# ~/.bash_profile
+
+# Source .profile for Hyprland startup
+if [ -f ~/.profile ]; then
+    . ~/.profile
+fi
+
+# Get the aliases and functions
+if [ -f ~/.bashrc ]; then
+    . ~/.bashrc
+fi
+BASH_PROFILE
+fi
+
+chown $USERNAME:$USERNAME /mnt/home/$USERNAME/.profile /mnt/home/$USERNAME/.bash_profile
+chmod 644 /mnt/home/$USERNAME/.profile /mnt/home/$USERNAME/.bash_profile
+
+print_success "Hyprland autostart configuration verified"
+
 # Enable multilib repository (32-bit support)
 print_info "Enabling multilib repository..."
 
