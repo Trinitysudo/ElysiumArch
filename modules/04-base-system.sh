@@ -93,9 +93,9 @@ log_info "Base: Root password configured"
 
 # Create user account
 print_info "Creating user account: $USERNAME..."
-arch-chroot /mnt useradd -m -G wheel,audio,video,storage,optical -s /bin/bash "$USERNAME"
+arch-chroot /mnt useradd -m -G wheel,audio,video,storage,optical,input,seat -s /bin/bash "$USERNAME"
 echo "$USERNAME:$USER_PASSWORD" | arch-chroot /mnt chpasswd
-print_success "User account created: $USERNAME"
+print_success "User account created: $USERNAME (with Wayland permissions)"
 log_info "Base: User account created: $USERNAME"
 
 # Configure sudo

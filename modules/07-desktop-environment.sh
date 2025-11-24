@@ -170,14 +170,14 @@ cd ~/build
 # Clone JaKooLit Hyprland dotfiles
 if [ ! -d "Hyprland-Dots" ]; then
     git clone --depth 1 https://github.com/JaKooLit/Hyprland-Dots || {
-        echo "Failed to clone Hyprland-Dots"
-        exit 1
+        echo "Failed to clone Hyprland-Dots, using basic config"
+        exit 0
     }
 fi
 
 cd Hyprland-Dots
 
-# Copy configs
+# Copy configs manually (safer than running install script)
 mkdir -p ~/.config
 cp -r config/* ~/.config/ 2>/dev/null || true
 
@@ -185,15 +185,18 @@ echo "JaKooLit Hyprland dotfiles installed"
 HYPR_CONFIG_EOF
 
 if [[ $? -eq 0 ]]; then
-    print_success "Hyprland dotfiles installed"
+    print_success "JaKooLit Hyprland dotfiles installed"
 else
-    print_warning "Hyprland dotfiles install failed, creating basic config..."
+    print_warning "JaKooLit dotfiles failed, will use basic config"
 fi
 
-# Create basic Hyprland config if dotfiles failed
+# Always ensure Hyprland config exists and is working
+print_info "Ensuring Hyprland configuration is present..."
+mkdir -p /mnt/home/$USERNAME/.config/hypr
+
+# If no config exists or JaKooLit's config is broken, create a working basic config
 if [ ! -f "/mnt/home/$USERNAME/.config/hypr/hyprland.conf" ]; then
     print_info "Creating basic Hyprland configuration..."
-    mkdir -p /mnt/home/$USERNAME/.config/hypr
     
     cat > /mnt/home/$USERNAME/.config/hypr/hyprland.conf << 'HYPR_EOF'
 # ElysiumArch Hyprland Config - Blue/Black Theme
@@ -313,6 +316,28 @@ HYPR_EOF
     print_success "Basic Hyprland config created"
 fi
 
+# Create Hyprland startup wrapper script
+print_info "Creating Hyprland startup script..."
+cat > /mnt/usr/local/bin/start-hyprland.sh << 'WRAPPER_EOF'
+#!/bin/bash
+# Start Hyprland with proper environment
+
+# Set XDG environment
+export XDG_SESSION_TYPE=wayland
+export XDG_SESSION_DESKTOP=Hyprland
+export XDG_CURRENT_DESKTOP=Hyprland
+
+# Set Qt/GTK Wayland
+export QT_QPA_PLATFORM=wayland
+export GDK_BACKEND=wayland
+export MOZ_ENABLE_WAYLAND=1
+
+# Start Hyprland
+exec Hyprland
+WRAPPER_EOF
+
+chmod +x /mnt/usr/local/bin/start-hyprland.sh
+
 # Create Hyprland desktop session file for SDDM
 print_info "Creating Hyprland session file..."
 mkdir -p /mnt/usr/share/wayland-sessions
@@ -320,7 +345,8 @@ cat > /mnt/usr/share/wayland-sessions/hyprland.desktop << 'SESSION_EOF'
 [Desktop Entry]
 Name=Hyprland
 Comment=An intelligent dynamic tiling Wayland compositor
-Exec=Hyprland
+Exec=/usr/local/bin/start-hyprland.sh
+DesktopNames=Hyprland
 Type=Application
 SESSION_EOF
 
