@@ -158,15 +158,15 @@ print_info "Configuring Hyprland to start automatically..."
 cat > /mnt/home/$USERNAME/.bash_profile << 'BASH_PROFILE'
 # ~/.bash_profile
 
+# Source .profile FIRST for environment variables (critical for VM!)
+if [ -f ~/.profile ]; then
+    . ~/.profile
+fi
+
 # Start Hyprland automatically on TTY1 with error logging
 if [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
     # Log Hyprland crashes for debugging
     exec Hyprland 2>&1 | tee -a ~/.hyprland-crash.log
-fi
-
-# Source .profile for environment variables
-if [ -f ~/.profile ]; then
-    . ~/.profile
 fi
 
 # Get the aliases and functions
