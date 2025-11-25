@@ -27,15 +27,42 @@ log_success "Base: Base system installed via pacstrap"
 
 # Install essential packages
 print_info "Installing essential packages..."
-pacstrap /mnt \
-    grub efibootmgr os-prober \
-    amd-ucode \
-    networkmanager dhcpcd iwd \
-    sudo nano vim \
-    git wget curl \
-    man-db man-pages \
-    ntfs-3g \
+
+# Detect CPU for microcode
+CPU_VENDOR=""
+if grep -q "AuthenticAMD" /proc/cpuinfo; then
+    CPU_VENDOR="amd"
+    print_info "AMD CPU detected - will install amd-ucode"
+elif grep -q "GenuineIntel" /proc/cpuinfo; then
+    CPU_VENDOR="intel"
+    print_info "Intel CPU detected - will install intel-ucode"
+fi
+
+# Build package list
+ESSENTIAL_PACKAGES=(
+    grub efibootmgr os-prober
+    networkmanager dhcpcd iwd
+    sudo nano vim
+    git wget curl
+    man-db man-pages
+    ntfs-3g
     ufw
+)
+
+# Add CPU microcode
+if [[ "$CPU_VENDOR" == "amd" ]]; then
+    ESSENTIAL_PACKAGES+=(amd-ucode)
+elif [[ "$CPU_VENDOR" == "intel" ]]; then
+    ESSENTIAL_PACKAGES+=(intel-ucode)
+fi
+
+pacstrap /mnt "${ESSENTIAL_PACKAGES[@]}"
+
+if [[ $? -ne 0 ]]; then
+    print_error "Failed to install essential packages"
+    log_error "Base: Essential packages installation failed"
+    exit 1
+fi
 
 print_success "Essential packages installed"
 log_success "Base: Essential packages installed"
