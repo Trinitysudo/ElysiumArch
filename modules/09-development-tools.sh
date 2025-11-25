@@ -8,16 +8,31 @@ print_info "Installing development tools..."
 
 # Install Java Development Kits
 print_info "Installing Java JDK 17 and 21..."
+
+# Install JDK packages (JRE is included in JDK, don't install separately)
 arch-chroot /mnt pacman -S --noconfirm --needed \
     jdk17-openjdk \
-    jdk21-openjdk \
-    jre17-openjdk \
-    jre21-openjdk \
+    jdk21-openjdk
+
+if [[ $? -ne 0 ]]; then
+    print_error "Failed to install Java JDKs"
+    log_error "Development: Java JDK installation failed"
+    exit 1
+fi
+
+print_success "Java JDKs installed (17 and 21)"
+
+# Install build tools
+print_info "Installing Maven and Gradle..."
+arch-chroot /mnt pacman -S --noconfirm --needed \
     maven \
     gradle
 
-print_success "Java JDKs installed (17 and 21)"
-log_success "Development: Java JDK 17 and 21 with Maven and Gradle installed"
+if [[ $? -ne 0 ]]; then
+    print_warning "Failed to install Maven/Gradle - will continue"
+fi
+
+log_success "Development: Java JDK 17 and 21 with build tools installed"
 
 # Set Java 21 as default
 print_info "Setting Java 21 as default..."
@@ -36,6 +51,12 @@ arch-chroot /mnt pacman -S --noconfirm --needed \
     npm \
     yarn
 
+if [[ $? -ne 0 ]]; then
+    print_error "Failed to install Node.js"
+    log_error "Development: Node.js installation failed"
+    exit 1
+fi
+
 print_success "Node.js and npm installed"
 
 # Verify Node.js installation
@@ -51,6 +72,10 @@ arch-chroot /mnt pacman -S --noconfirm --needed \
     python \
     python-pip \
     python-virtualenv
+
+if [[ $? -ne 0 ]]; then
+    print_warning "Failed to install Python tools - will continue"
+fi
 
 print_success "Python tools installed"
 
