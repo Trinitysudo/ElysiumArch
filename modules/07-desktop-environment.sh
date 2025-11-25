@@ -180,6 +180,10 @@ export QT_QPA_PLATFORM=wayland
 export GDK_BACKEND=wayland
 export MOZ_ENABLE_WAYLAND=1
 
+# Hyprland stability settings
+export HYPRLAND_LOG_WLR=1
+export XCURSOR_SIZE=24
+
 # Hyprland autostart is handled by .bash_profile
 PROFILE_START
 

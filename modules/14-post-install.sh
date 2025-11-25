@@ -9,18 +9,25 @@ print_info "Running post-installation configuration..."
 # Add VM-specific environment variables if needed
 print_info "Configuring system-specific environment variables..."
 
-# Detect if running in VM
-if systemd-detect-virt --quiet 2>/dev/null || grep -q "hypervisor" /proc/cpuinfo 2>/dev/null; then
+# Check if NVIDIA GPU exists (if yes, skip VM rendering even in VM)
+HAS_NVIDIA=false
+if grep -q "NVIDIA" /mnt/var/log/elysium/gpu_type 2>/dev/null; then
+    HAS_NVIDIA=true
+    print_info "NVIDIA GPU detected - using hardware rendering"
+fi
+
+# Detect if running in VM (but skip if NVIDIA GPU present)
+if [[ "$HAS_NVIDIA" == "false" ]] && (systemd-detect-virt --quiet 2>/dev/null || grep -q "hypervisor" /proc/cpuinfo 2>/dev/null); then
     VIRT_TYPE=$(systemd-detect-virt 2>/dev/null || echo "VM")
     print_info "Virtual machine detected: $VIRT_TYPE - adding VM-optimized settings"
     
     # Append VM-specific settings to existing .profile
     cat >> /mnt/home/$USERNAME/.profile << 'PROFILE_VM_APPEND'
 
-# VM-specific Hyprland settings (software rendering)
+# VM-specific Hyprland settings
 export WLR_NO_HARDWARE_CURSORS=1
 export WLR_RENDERER_ALLOW_SOFTWARE=1
-export LIBGL_ALWAYS_SOFTWARE=1
+# Note: LIBGL_ALWAYS_SOFTWARE removed - causes black screen issues
 PROFILE_VM_APPEND
     
     print_success "VM-optimized settings added to .profile"
