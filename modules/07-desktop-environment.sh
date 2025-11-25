@@ -157,16 +157,22 @@ print_info "Creating Hyprland environment configuration..."
 IS_VM=false
 if systemd-detect-virt --quiet 2>/dev/null || grep -q "hypervisor" /proc/cpuinfo 2>/dev/null; then
     IS_VM=true
-    print_info "VM detected - adding software rendering flags"
+    VIRT_TYPE=$(systemd-detect-virt 2>/dev/null || echo "VM")
+    print_info "Virtual machine detected: $VIRT_TYPE - configuring for software rendering"
 fi
 
-# Create .bash_profile
+# Create .bash_profile with Hyprland autostart
 cat > /mnt/home/$USERNAME/.bash_profile << 'BASH_PROFILE'
 # ~/.bash_profile
 
-# Source profile for environment variables
+# Source profile for environment variables FIRST
 if [ -f ~/.profile ]; then
     . ~/.profile
+fi
+
+# Auto-start Hyprland on TTY1
+if [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
+    exec Hyprland
 fi
 
 # Source bashrc
@@ -175,39 +181,70 @@ if [ -f ~/.bashrc ]; then
 fi
 BASH_PROFILE
 
-# Create .profile with essential Wayland/Hyprland environment
-cat > /mnt/home/$USERNAME/.profile << 'PROFILE_EOF'
-# ~/.profile
+# Create .profile with VM-optimized environment
+if [[ "$IS_VM" == "true" ]]; then
+    cat > /mnt/home/$USERNAME/.profile << 'PROFILE_VM'
+# ~/.profile - VM OPTIMIZED
 
-# XDG Base Directory (CRITICAL - fixes XDG_RUNTIME_DIR error)
+# XDG Base Directory
 export XDG_RUNTIME_DIR="/run/user/$(id -u)"
 export XDG_CONFIG_HOME="$HOME/.config"
 export XDG_DATA_HOME="$HOME/.local/share"
 export XDG_CACHE_HOME="$HOME/.cache"
 
-# Wayland session
+# Session type
 export XDG_SESSION_TYPE=wayland
 export XDG_SESSION_DESKTOP=Hyprland
 export XDG_CURRENT_DESKTOP=Hyprland
 
-# Qt/GTK Wayland support
+# VM SOFTWARE RENDERING (CRITICAL)
+export WLR_NO_HARDWARE_CURSORS=1
+export WLR_RENDERER_ALLOW_SOFTWARE=1
+export WLR_RENDERER=pixman
+export LIBGL_ALWAYS_SOFTWARE=1
+export GALLIUM_DRIVER=llvmpipe
+
+# Disable 3D acceleration attempts
+export __GLX_VENDOR_LIBRARY_NAME=mesa
+export MESA_LOADER_DRIVER_OVERRIDE=llvmpipe
+
+# Qt/GTK on Wayland
+export QT_QPA_PLATFORM=wayland
+export GDK_BACKEND=wayland
+export MOZ_ENABLE_WAYLAND=1
+export CLUTTER_BACKEND=wayland
+export SDL_VIDEODRIVER=wayland
+
+# Cursor
+export XCURSOR_SIZE=24
+export XCURSOR_THEME=Adwaita
+PROFILE_VM
+    print_success "Created VM-optimized profile with software rendering"
+else
+    # Physical hardware profile
+    cat > /mnt/home/$USERNAME/.profile << 'PROFILE_HW'
+# ~/.profile - HARDWARE
+
+# XDG Base Directory
+export XDG_RUNTIME_DIR="/run/user/$(id -u)"
+export XDG_CONFIG_HOME="$HOME/.config"
+export XDG_DATA_HOME="$HOME/.local/share"
+export XDG_CACHE_HOME="$HOME/.cache"
+
+# Session type
+export XDG_SESSION_TYPE=wayland
+export XDG_SESSION_DESKTOP=Hyprland
+export XDG_CURRENT_DESKTOP=Hyprland
+
+# Qt/GTK on Wayland
 export QT_QPA_PLATFORM=wayland
 export GDK_BACKEND=wayland
 export MOZ_ENABLE_WAYLAND=1
 
-# Hyprland settings
+# Cursor
 export XCURSOR_SIZE=24
-PROFILE_EOF
-
-# Add VM-specific flags if in VM
-if [[ "$IS_VM" == "true" ]]; then
-    cat >> /mnt/home/$USERNAME/.profile << 'VM_PROFILE'
-
-# VM software rendering (fixes crashes)
-export WLR_NO_HARDWARE_CURSORS=1
-export WLR_RENDERER_ALLOW_SOFTWARE=1
-VM_PROFILE
-    print_success "Added VM rendering flags"
+PROFILE_HW
+    print_success "Created hardware-optimized profile"
 fi
 
 # Set ownership
@@ -216,7 +253,16 @@ chown $USERNAME:$USERNAME /mnt/home/$USERNAME/.profile
 chmod 644 /mnt/home/$USERNAME/.bash_profile
 chmod 644 /mnt/home/$USERNAME/.profile
 
-print_success "Environment configuration created"
+# Configure TTY autologin
+print_info "Configuring TTY autologin..."
+mkdir -p /mnt/etc/systemd/system/getty@tty1.service.d
+cat > /mnt/etc/systemd/system/getty@tty1.service.d/autologin.conf << EOF
+[Service]
+ExecStart=
+ExecStart=-/sbin/agetty -o '-p -f -- \\\\u' --noclear --autologin $USERNAME %I \$TERM
+EOF
+
+print_success "Environment configuration created with autologin"
 
 # Install ML4W Dotfiles (simple automated install)
 print_info "Installing ML4W Dotfiles..."
