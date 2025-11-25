@@ -175,7 +175,14 @@ if [ -f ~/.bashrc ]; then
 fi
 BASH_PROFILE
 
-# Create .profile with environment variables only
+# Create .profile with environment variables (detect VM FIRST!)
+# Detect if running in VM
+IS_VM=false
+if systemd-detect-virt --quiet 2>/dev/null || grep -q "hypervisor" /proc/cpuinfo 2>/dev/null; then
+    IS_VM=true
+    print_info "Virtual machine detected - will add software rendering flags"
+fi
+
 cat > /mnt/home/$USERNAME/.profile << 'PROFILE_START'
 # ~/.profile
 
@@ -190,9 +197,23 @@ export MOZ_ENABLE_WAYLAND=1
 # Hyprland stability settings
 export HYPRLAND_LOG_WLR=1
 export XCURSOR_SIZE=24
+PROFILE_START
+
+# Add VM-specific settings if in VM
+if [[ "$IS_VM" == "true" ]]; then
+    cat >> /mnt/home/$USERNAME/.profile << 'PROFILE_VM'
+
+# VM-specific Hyprland settings (software rendering)
+export WLR_NO_HARDWARE_CURSORS=1
+export WLR_RENDERER_ALLOW_SOFTWARE=1
+PROFILE_VM
+    print_info "Added VM software rendering flags to .profile"
+fi
+
+cat >> /mnt/home/$USERNAME/.profile << 'PROFILE_END'
 
 # Hyprland autostart is handled by .bash_profile
-PROFILE_START
+PROFILE_END
 
 chown $USERNAME:$USERNAME /mnt/home/$USERNAME/.bash_profile
 chown $USERNAME:$USERNAME /mnt/home/$USERNAME/.profile
