@@ -35,8 +35,17 @@ if [[ "$BOOT_MODE" == "UEFI" ]]; then
 else
     print_info "Installing GRUB for BIOS/Legacy mode..."
     
+    # Get the disk device (use DISK variable from module 03)
+    if [[ -z "$DISK" ]]; then
+        print_error "DISK variable not set!"
+        log_error "Bootloader: DISK variable missing"
+        exit 1
+    fi
+    
+    print_info "Installing GRUB to: $DISK"
+    
     # Install GRUB for BIOS
-    arch-chroot /mnt grub-install --target=i386-pc --recheck "$INSTALL_DISK"
+    arch-chroot /mnt grub-install --target=i386-pc --recheck "$DISK"
     
     if [[ $? -ne 0 ]]; then
         print_error "Failed to install GRUB for BIOS"
@@ -44,7 +53,7 @@ else
         exit 1
     fi
     
-    print_success "GRUB installed for BIOS/Legacy"
+    print_success "GRUB installed for BIOS/Legacy to $DISK"
 fi
 
 log_success "Bootloader: GRUB installed for $BOOT_MODE"
