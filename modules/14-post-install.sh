@@ -6,62 +6,40 @@
 
 print_info "Running post-installation configuration..."
 
-# Ensure Hyprland autostart files are correct (final check)
-print_info "Ensuring Hyprland autostart configuration..."
+# Add VM-specific environment variables if needed
+print_info "Configuring system-specific environment variables..."
 
 # Detect if running in VM
 if systemd-detect-virt --quiet 2>/dev/null || grep -q "hypervisor" /proc/cpuinfo 2>/dev/null; then
     VIRT_TYPE=$(systemd-detect-virt 2>/dev/null || echo "VM")
-    print_info "Virtual machine detected: $VIRT_TYPE - using VM-optimized settings"
+    print_info "Virtual machine detected: $VIRT_TYPE - adding VM-optimized settings"
     
-    # Create VM-optimized .profile
-    cat > /mnt/home/$USERNAME/.profile << 'PROFILE_VM'
-# ~/.profile
-
-# Wayland environment variables
-export XDG_SESSION_TYPE=wayland
-export XDG_SESSION_DESKTOP=Hyprland
-export XDG_CURRENT_DESKTOP=Hyprland
-export QT_QPA_PLATFORM=wayland
-export GDK_BACKEND=wayland
-export MOZ_ENABLE_WAYLAND=1
+    # Append VM-specific settings to existing .profile
+    cat >> /mnt/home/$USERNAME/.profile << 'PROFILE_VM_APPEND'
 
 # VM-specific Hyprland settings (software rendering)
 export WLR_NO_HARDWARE_CURSORS=1
 export WLR_RENDERER_ALLOW_SOFTWARE=1
 export LIBGL_ALWAYS_SOFTWARE=1
-
-# Start Hyprland on TTY1 login
-if [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
-  exec Hyprland
-fi
-PROFILE_VM
+PROFILE_VM_APPEND
+    
+    print_success "VM-optimized settings added to .profile"
 else
-    # Create regular .profile for physical hardware
-    cat > /mnt/home/$USERNAME/.profile << 'PROFILE_START'
-# ~/.profile
-
-# Wayland environment variables
-export XDG_SESSION_TYPE=wayland
-export XDG_SESSION_DESKTOP=Hyprland
-export XDG_CURRENT_DESKTOP=Hyprland
-
-# NVIDIA environment set globally in /etc/environment.d/10-nvidia-wayland.conf
-# This includes: LIBVA_DRIVER_NAME, GBM_BACKEND, __GLX_VENDOR_LIBRARY_NAME, etc.
-
-# Start Hyprland on TTY1 login
-if [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
-  exec Hyprland
-fi
-PROFILE_START
+    print_info "Physical hardware detected - using standard configuration"
 fi
 
-# Ensure .bash_profile sources .profile
-if ! grep -q "\.profile" /mnt/home/$USERNAME/.bash_profile 2>/dev/null; then
+# Verify .bash_profile exists (don't overwrite - created in module 07)
+if [ ! -f /mnt/home/$USERNAME/.bash_profile ]; then
+    print_warning ".bash_profile not found - recreating with Hyprland autostart"
     cat > /mnt/home/$USERNAME/.bash_profile << 'BASH_PROFILE'
 # ~/.bash_profile
 
-# Source .profile for Hyprland startup
+# Start Hyprland automatically on TTY1
+if [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
+    exec Hyprland
+fi
+
+# Source .profile for environment variables
 if [ -f ~/.profile ]; then
     . ~/.profile
 fi

@@ -148,11 +148,16 @@ EOF
 # Create .bash_profile AND .profile with Hyprland autostart
 print_info "Configuring Hyprland to start automatically..."
 
-# Create .bash_profile
+# Create .bash_profile with direct Hyprland launch
 cat > /mnt/home/$USERNAME/.bash_profile << 'BASH_PROFILE'
 # ~/.bash_profile
 
-# Source .profile for Hyprland startup
+# Start Hyprland automatically on TTY1
+if [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
+    exec Hyprland
+fi
+
+# Source .profile for environment variables
 if [ -f ~/.profile ]; then
     . ~/.profile
 fi
@@ -163,7 +168,7 @@ if [ -f ~/.bashrc ]; then
 fi
 BASH_PROFILE
 
-# Create .profile with Hyprland autostart
+# Create .profile with environment variables only
 cat > /mnt/home/$USERNAME/.profile << 'PROFILE_START'
 # ~/.profile
 
@@ -175,10 +180,7 @@ export QT_QPA_PLATFORM=wayland
 export GDK_BACKEND=wayland
 export MOZ_ENABLE_WAYLAND=1
 
-# Start Hyprland on TTY1 login
-if [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
-  exec Hyprland
-fi
+# Hyprland autostart is handled by .bash_profile
 PROFILE_START
 
 chown $USERNAME:$USERNAME /mnt/home/$USERNAME/.bash_profile
