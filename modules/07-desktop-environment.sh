@@ -18,15 +18,21 @@ arch-chroot /mnt pacman -S --noconfirm --needed \
 
 print_success "Wayland essentials installed"
 
-# Install Hyprland and ecosystem
+# Install Hyprland and all critical dependencies
 print_info "Installing Hyprland and ecosystem tools..."
 arch-chroot /mnt pacman -S --noconfirm --needed \
     hyprland \
     xdg-desktop-portal-hyprland \
+    xdg-desktop-portal-gtk \
     qt5-wayland \
     qt6-wayland \
+    qt5ct \
+    qt6ct \
     wl-clipboard \
-    cliphist
+    cliphist \
+    glfw-wayland \
+    cairo \
+    pango
 
 if [[ $? -ne 0 ]]; then
     print_error "Failed to install Hyprland"
@@ -152,9 +158,10 @@ print_info "Configuring Hyprland to start automatically..."
 cat > /mnt/home/$USERNAME/.bash_profile << 'BASH_PROFILE'
 # ~/.bash_profile
 
-# Start Hyprland automatically on TTY1
+# Start Hyprland automatically on TTY1 with error logging
 if [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
-    exec Hyprland
+    # Log Hyprland crashes for debugging
+    exec Hyprland 2>&1 | tee -a ~/.hyprland-crash.log
 fi
 
 # Source .profile for environment variables
@@ -255,18 +262,20 @@ arch-chroot /mnt sudo -u $USERNAME xdg-user-dirs-update
 print_info "Ensuring Hyprland configuration is present..."
 mkdir -p /mnt/home/$USERNAME/.config/hypr
 
-# If no config exists or JaKooLit's config is broken, create a working basic config
-if [ ! -f "/mnt/home/$USERNAME/.config/hypr/hyprland.conf" ]; then
-    print_info "Creating basic Hyprland configuration..."
-    
-    cat > /mnt/home/$USERNAME/.config/hypr/hyprland.conf << 'HYPR_EOF'
-# ElysiumArch Hyprland Config - Blue/Black Theme
+# Always create a guaranteed working fallback config (ML4W might override)
+print_info "Creating guaranteed working Hyprland fallback configuration..."
+
+cat > /mnt/home/$USERNAME/.config/hypr/hyprland.conf << 'HYPR_EOF'
+# ElysiumArch Minimal Working Hyprland Config
+# This ensures Hyprland can start even if ML4W config fails
+
+# Monitor setup - auto-detect
 monitor=,preferred,auto,1
 
-exec-once = waybar
-exec-once = dunst
-exec-once = /usr/lib/polkit-kde-authentication-agent-1
-exec-once = swaybg -i ~/Pictures/wallpaper.png -m fill
+# Startup applications (optional - will fail gracefully if missing)
+exec-once = waybar &
+exec-once = dunst &
+exec-once = /usr/lib/polkit-kde-authentication-agent-1 &
 exec-once = nm-applet --indicator
 exec-once = blueman-applet
 exec-once = cliphist store
