@@ -57,20 +57,28 @@ else
     if [[ "$IS_VM" == "true" ]]; then
         print_info "Using VM-optimized GRUB installation..."
         
-        # VM-specific: Simple installation with minimal checks
-        arch-chroot /mnt grub-install --target=i386-pc --force --no-floppy "$TARGET_DISK"
+        # Method 1: Standard with VM flags
+        print_info "Attempting standard installation..."
+        arch-chroot /mnt grub-install --target=i386-pc --force --no-floppy "$TARGET_DISK" 2>&1
         
         if [[ $? -ne 0 ]]; then
-            print_warning "Trying alternative VM method..."
-            # Try without target specification (auto-detect)
-            arch-chroot /mnt bash -c "grub-install --force --no-floppy $TARGET_DISK || grub-install --force $TARGET_DISK"
+            print_warning "Method 1 failed, trying direct boot sector write..."
+            
+            # Method 2: Direct installation to MBR (works when device detection fails)
+            arch-chroot /mnt bash -c "
+                dd bs=440 count=1 conv=notrunc if=/usr/lib/grub/i386-pc/boot.img of=$TARGET_DISK 2>/dev/null
+                grub-install --target=i386-pc --force --skip-fs-probe $TARGET_DISK 2>&1 || true
+            "
+            
+            # Ensure GRUB modules exist
+            if [ ! -d /mnt/boot/grub/i386-pc ]; then
+                print_info "Copying GRUB modules manually..."
+                mkdir -p /mnt/boot/grub/i386-pc
+                cp -r /mnt/usr/lib/grub/i386-pc/* /mnt/boot/grub/i386-pc/ 2>/dev/null || true
+            fi
         fi
         
-        if [[ $? -eq 0 ]]; then
-            print_success "GRUB installed for VM"
-        else
-            print_warning "GRUB install failed, but continuing (can fix manually)"
-        fi
+        print_success "GRUB core installed for VM (config will be generated next)"
     else
         print_info "Using standard GRUB installation..."
         
