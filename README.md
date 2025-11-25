@@ -1,36 +1,22 @@
-# 🌟 ElysiumArch - Automated Arch Linux Installer# 🌟 ElysiumArch - Automated Arch Linux Installer
+# 🌟 ElysiumArch - Automated Arch Linux Installer
 
+<div align="center">
 
+![ElysiumArch](https://img.shields.io/badge/Arch-Linux-1793D1?logo=arch-linux&logoColor=fff)
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Status](https://img.shields.io/badge/status-active-success.svg)
+![Hyprland](https://img.shields.io/badge/Hyprland-Wayland-5BCEFA)
 
-<div align="center"><div align="center">
+**Fully automated Arch Linux installer with Hyprland + ML4W Dotfiles**
+**Optimized for NVIDIA RTX 3060, VMs, and development**
 
+</div>
 
+---
 
-![ElysiumArch](https://img.shields.io/badge/Arch-Linux-1793D1?logo=arch-linux&logoColor=fff)![ElysiumArch](https://img.shields.io/badge/Arch-Linux-1793D1?logo=arch-linux&logoColor=fff)
+## 📋 Overview
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)![License](https://img.shields.io/badge/license-MIT-blue.svg)
-
-![Status](https://img.shields.io/badge/status-active-success.svg)![Status](https://img.shields.io/badge/status-active-success.svg)
-
-
-
-**Fully automated Arch Linux installer with GNOME desktop, optimized for development and gaming****Fully automated Arch Linux installer with GNOME desktop, optimized for development and gaming**
-
-
-
-</div></div>
-
-
-
-------
-
-
-
-## 📋 Overview## 📋 Overview
-
-
-
-**ElysiumArch** is a one-command Arch Linux installer that sets up a complete development environment automatically. Features intelligent GPU detection (NVIDIA/AMD/Intel/VM), GNOME desktop, development tools, gaming support, and **checkpoint/resume capability**.**ElysiumArch** is a one-command Arch Linux installer that sets up a complete development environment automatically. Installs base system, GNOME desktop, development tools, and gaming support with intelligent GPU detection (NVIDIA/AMD/Intel/VM).
+**ElysiumArch** is a one-command Arch Linux installer that sets up a complete development environment with professional Hyprland configuration. Features intelligent GPU detection (NVIDIA/AMD/Intel/VM), ML4W dotfiles, development tools, gaming support, and **checkpoint/resume capability**.
 
 
 

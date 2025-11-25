@@ -214,10 +214,10 @@ fi
 
 cd dotfiles
 
-# Run the installer (automated mode)
+# Run the installer (automated mode with proper responses)
 chmod +x install.sh
-# Accept all defaults, use Kitty as terminal
-echo -e "\n\n\n\n\nkitty\n\n" | ./install.sh || {
+# Responses: profile (1=default), terminal (kitty), confirm installs
+printf "1\nkitty\ny\ny\ny\ny\n" | ./install.sh || {
     echo "ML4W installer failed, will configure manually"
     exit 0
 }

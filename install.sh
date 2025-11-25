@@ -223,33 +223,70 @@ check_system_requirements() {
         print_info "Please run: sudo ./install.sh"
         exit 1
     fi
+    print_success "✓ Running as root"
+    
+    # Check if we're in Arch Linux live environment
+    if [[ ! -f /etc/arch-release ]]; then
+        print_error "This script must be run from Arch Linux installation media!"
+        exit 1
+    fi
+    print_success "✓ Arch Linux environment detected"
     
     # Check if UEFI mode
-    if [[ ! -d /sys/firmware/efi ]]; then
-        print_warning "UEFI mode not detected!"
-        print_info "This installer is optimized for UEFI but will work with BIOS/Legacy systems."
-        print_info "Continuing with installation..."
+    if [[ -d /sys/firmware/efi ]]; then
+        print_success "✓ UEFI mode detected"
+    else
+        print_warning "! BIOS/Legacy mode detected"
+        print_info "  This installer supports both UEFI and BIOS"
     fi
     
     # Check internet connection
-    if ! ping -c 1 archlinux.org &>/dev/null; then
-        print_warning "No internet connection detected!"
-        print_info "Internet is required for installation."
-        print_info "The installer will help you connect to WiFi in the next step."
+    print_info "Testing internet connection..."
+    if ping -c 2 -W 3 archlinux.org &>/dev/null; then
+        print_success "✓ Internet connection active"
     else
-        print_success "Internet connection detected"
+        print_error "✗ No internet connection!"
+        print_info "Internet is REQUIRED for installation."
+        print_info "The next module will help you connect to WiFi."
+        if ! confirm "Continue anyway?"; then
+            exit 1
+        fi
     fi
     
     # Check available RAM
     local total_ram=$(free -m | awk '/^Mem:/{print $2}')
     if [[ $total_ram -lt 2048 ]]; then
-        print_warning "Low RAM detected: ${total_ram}MB"
-        print_warning "Recommended: 4GB or more"
+        print_warning "! Low RAM: ${total_ram}MB (Recommended: 4GB+)"
     else
-        print_success "RAM: ${total_ram}MB"
+        print_success "✓ RAM: ${total_ram}MB"
     fi
     
-    print_success "System requirements check complete"
+    # Check disk space (need at least 20GB free)
+    local free_space=$(df -m / | awk 'NR==2 {print $4}')
+    if [[ $free_space -lt 20480 ]]; then
+        print_warning "! Limited disk space: ${free_space}MB available"
+        print_warning "  Recommended: 30GB+ free space"
+    else
+        print_success "✓ Disk space: ${free_space}MB available"
+    fi
+    
+    # Check for required tools
+    local missing_tools=()
+    for tool in pacman curl wget git; do
+        if ! command -v "$tool" &>/dev/null; then
+            missing_tools+=("$tool")
+        fi
+    done
+    
+    if [[ ${#missing_tools[@]} -gt 0 ]]; then
+        print_error "Missing required tools: ${missing_tools[*]}"
+        exit 1
+    fi
+    print_success "✓ All required tools present"
+    
+    echo ""
+    print_success "System requirements check PASSED ✓"
+    echo ""
 }
 
 # Confirm installation
@@ -271,26 +308,16 @@ get_user_configuration() {
         fi
     done
     
-    # User password
+    # Single password for both user and root (simplified!)
+    print_info "This password will be used for both your user account AND root"
     while true; do
-        read -sp "$(print_info "Enter password for $USERNAME (any length): ")" USER_PASSWORD
+        read -sp "$(print_info "Enter password (any length): ")" USER_PASSWORD
         echo ""
         read -sp "$(print_info "Confirm password: ")" USER_PASSWORD2
         echo ""
         if [[ "$USER_PASSWORD" == "$USER_PASSWORD2" ]]; then
-            break
-        else
-            print_error "Passwords do not match. Try again."
-        fi
-    done
-    
-    # Root password
-    while true; do
-        read -sp "$(print_info "Enter root password (any length): ")" ROOT_PASSWORD
-        echo ""
-        read -sp "$(print_info "Confirm root password: ")" ROOT_PASSWORD2
-        echo ""
-        if [[ "$ROOT_PASSWORD" == "$ROOT_PASSWORD2" ]]; then
+            # Use same password for root
+            ROOT_PASSWORD="$USER_PASSWORD"
             break
         else
             print_error "Passwords do not match. Try again."
@@ -384,8 +411,8 @@ display_summary() {
     print_info "    - yay (AUR helper)"
     print_info "    - paru (AUR helper)"
     print_info "    - Homebrew"
-    print_info "✓ System themed with blue/black colors"
-    print_info "✓ Waybar, Rofi, and Dunst configured"
+    print_info "✓ ML4W Dotfiles installed (Professional Hyprland config)"
+    print_info "✓ Waybar, Rofi, and Dunst fully configured"
     print_info "✓ Multi-monitor support ready"
     print_info "✓ Timeshift backup system enabled"
     print_info "✓ Security features configured:"
@@ -398,11 +425,12 @@ display_summary() {
     print_info "  ${LOG_FILE}"
     echo ""
     print_info "Next Steps After Reboot:"
-    print_info "  1. Log in to your user account at SDDM"
-    print_info "  2. Hyprland will start automatically"
-    print_info "  3. Update system: yay -Syu"
-    print_info "  4. Create first Timeshift snapshot"
-    print_info "  5. Configure your applications"
+    print_info "  1. System will boot directly to TTY1"
+    print_info "  2. Auto-login to your account"
+    print_info "  3. Hyprland will start automatically with ML4W config"
+    print_info "  4. Update system: yay -Syu"
+    print_info "  5. Create first Timeshift snapshot"
+    print_info "  6. Customize ML4W dotfiles to your liking"
     echo ""
     print_success "Thank you for using ElysiumArch!"
     echo ""
