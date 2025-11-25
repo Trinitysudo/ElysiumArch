@@ -142,19 +142,11 @@ print_success "Printing support installed"
 # Enable services
 print_info "Enabling desktop services..."
 
-# Configure TTY autologin (proper way for Hyprland)
-print_info "Configuring TTY autologin for $USERNAME..."
-mkdir -p /mnt/etc/systemd/system/getty@tty1.service.d
-cat > /mnt/etc/systemd/system/getty@tty1.service.d/autologin.conf << EOF
-[Service]
-ExecStart=
-ExecStart=-/sbin/agetty -o '-p -f -- \\u' --noclear --autologin $USERNAME %I \$TERM
-EOF
+# TTY autologin disabled for manual testing
+print_info "TTY autologin DISABLED - manual login required"
+print_warning "After reboot: login, then run 'Hyprland' manually"
 
-# Create .bash_profile AND .profile with Hyprland autostart
-print_info "Configuring Hyprland to start automatically..."
-
-# Create .bash_profile with direct Hyprland launch
+# Create .bash_profile WITHOUT autostart (manual control)
 cat > /mnt/home/$USERNAME/.bash_profile << 'BASH_PROFILE'
 # ~/.bash_profile
 
@@ -163,11 +155,8 @@ if [ -f ~/.profile ]; then
     . ~/.profile
 fi
 
-# Start Hyprland automatically on TTY1 with error logging
-if [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
-    # Log Hyprland crashes for debugging
-    exec Hyprland 2>&1 | tee -a ~/.hyprland-crash.log
-fi
+# Hyprland autostart DISABLED for testing
+# To start Hyprland manually, just run: Hyprland
 
 # Get the aliases and functions
 if [ -f ~/.bashrc ]; then
