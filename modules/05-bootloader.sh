@@ -45,36 +45,47 @@ else
     fi
     
     print_info "Target disk: $TARGET_DISK"
-    print_info "Creating device map for GRUB..."
+    print_info "Debugging disk information..."
+    echo "Available disks:"
+    lsblk -o NAME,SIZE,TYPE
+    echo ""
+    echo "Checking if $TARGET_DISK exists:"
+    ls -la "$TARGET_DISK" || echo "DISK NOT FOUND!"
+    echo ""
     
-    # Create GRUB device map (fixes VM issues)
-    mkdir -p /mnt/boot/grub
-    echo "(hd0) $TARGET_DISK" > /mnt/boot/grub/device.map
-    cat /mnt/boot/grub/device.map
-    
-    # Run grub-mkdevicemap in chroot
-    arch-chroot /mnt grub-mkdevicemap
+    # Ensure /dev is properly bound
+    print_info "Ensuring /dev is mounted in chroot..."
+    mount --bind /dev /mnt/dev || true
+    mount --bind /dev/pts /mnt/dev/pts || true
+    mount --bind /proc /mnt/proc || true
+    mount --bind /sys /mnt/sys || true
     
     print_info "Installing GRUB to: $TARGET_DISK"
     
-    # Install GRUB for BIOS with explicit device map
-    arch-chroot /mnt grub-install --target=i386-pc --recheck --force "$TARGET_DISK"
+    # Simple GRUB install without fancy options (works best in VMs)
+    arch-chroot /mnt grub-install --target=i386-pc --boot-directory=/boot "$TARGET_DISK"
     
     if [[ $? -ne 0 ]]; then
-        print_error "Failed to install GRUB for BIOS"
-        print_info "Trying alternative method..."
-        
-        # Alternative: Install without --recheck
-        arch-chroot /mnt grub-install --target=i386-pc --force "$TARGET_DISK"
+        print_warning "First attempt failed, trying with --force..."
+        arch-chroot /mnt grub-install --target=i386-pc --force --boot-directory=/boot "$TARGET_DISK"
         
         if [[ $? -ne 0 ]]; then
-            print_error "GRUB installation failed completely"
+            print_error "GRUB installation failed!"
+            print_info "Manual fix: After reboot into Arch ISO, run:"
+            print_info "  mount /dev/sdXN /mnt"
+            print_info "  arch-chroot /mnt"
+            print_info "  grub-install --target=i386-pc $TARGET_DISK"
+            print_info "  grub-mkconfig -o /boot/grub/grub.cfg"
             log_error "Bootloader: GRUB BIOS installation failed"
-            exit 1
+            
+            # Don't exit - let user try to fix manually
+            print_warning "Continuing anyway - you may need to fix GRUB manually"
+        else
+            print_success "GRUB installed with --force flag"
         fi
+    else
+        print_success "GRUB installed for BIOS/Legacy to $TARGET_DISK"
     fi
-    
-    print_success "GRUB installed for BIOS/Legacy to $TARGET_DISK"
 fi
 
 log_success "Bootloader: GRUB installed for $BOOT_MODE"
