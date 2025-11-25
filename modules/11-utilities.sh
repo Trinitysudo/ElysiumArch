@@ -4,6 +4,13 @@
 # Install system utilities and tools
 #
 
+# Check if debug mode is enabled
+if [[ "$DEBUG_MODE" == "true" ]]; then
+    print_warning "DEBUG MODE: Skipping utilities installation"
+    echo "DEBUG_MODE_SKIP" >> /mnt/var/log/elysium/install_status
+    exit 0
+fi
+
 print_info "Installing system utilities..."
 
 # Install Kate editor

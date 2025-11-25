@@ -103,6 +103,30 @@ main() {
     # Pre-installation checks
     check_system_requirements
     
+    # Debug mode option (skip app installations for faster testing)
+    export DEBUG_MODE=false
+    if [[ "$LAST_CHECKPOINT" == "none" ]]; then
+        echo ""
+        print_info "=========================================="
+        print_info "  Debug Mode (for testing)"
+        print_info "=========================================="
+        echo ""
+        echo "Debug mode skips installation of:"
+        echo "  - Applications (browsers, discord, etc.)"
+        echo "  - Utilities (neofetch, btop, etc.)"
+        echo "  - Development tools (VS Code, IDEs, etc.)"
+        echo ""
+        echo "This makes installation 5-10 minutes faster for testing."
+        echo ""
+        if confirm "Enable debug mode?"; then
+            export DEBUG_MODE=true
+            print_warning "DEBUG MODE ENABLED - Apps will be skipped!"
+        else
+            print_success "Debug mode disabled - Full installation"
+        fi
+        echo ""
+    fi
+    
     # Get user configuration (skip if already set in config.sh or resuming)
     if [[ -z "$USERNAME" || "$USERNAME" == "youruser" ]]; then
         print_warning "USERNAME not configured in config.sh"
@@ -115,6 +139,7 @@ main() {
 USERNAME="$USERNAME"
 USER_PASSWORD="$USER_PASSWORD"
 ROOT_PASSWORD="$ROOT_PASSWORD"
+DEBUG_MODE="$DEBUG_MODE"
 EOF
     fi
     

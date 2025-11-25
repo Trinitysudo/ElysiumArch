@@ -4,6 +4,13 @@
 # Install user applications
 #
 
+# Check if debug mode is enabled
+if [[ "$DEBUG_MODE" == "true" ]]; then
+    print_warning "DEBUG MODE: Skipping all applications installation"
+    echo "DEBUG_MODE_SKIP" >> /mnt/var/log/elysium/install_status
+    exit 0
+fi
+
 print_info "Installing user applications..."
 
 # Ensure multilib is enabled (required for Steam)

@@ -4,6 +4,13 @@
 # Install Java, Node.js, IDEs, and development utilities
 #
 
+# Check if debug mode is enabled
+if [[ "$DEBUG_MODE" == "true" ]]; then
+    print_warning "DEBUG MODE: Skipping development tools installation"
+    echo "DEBUG_MODE_SKIP" >> /mnt/var/log/elysium/install_status
+    exit 0
+fi
+
 print_info "Installing development tools..."
 
 # Install Java Development Kits
