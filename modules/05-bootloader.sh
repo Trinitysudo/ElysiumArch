@@ -44,47 +44,51 @@ else
         exit 1
     fi
     
+    # Detect if running in VM
+    IS_VM=false
+    if systemd-detect-virt --quiet 2>/dev/null || grep -q "hypervisor" /proc/cpuinfo 2>/dev/null; then
+        IS_VM=true
+        VIRT_TYPE=$(systemd-detect-virt 2>/dev/null || echo "VM")
+        print_info "Virtual machine detected: $VIRT_TYPE"
+    fi
+    
     print_info "Target disk: $TARGET_DISK"
-    print_info "Debugging disk information..."
-    echo "Available disks:"
-    lsblk -o NAME,SIZE,TYPE
-    echo ""
-    echo "Checking if $TARGET_DISK exists:"
-    ls -la "$TARGET_DISK" || echo "DISK NOT FOUND!"
-    echo ""
     
-    # Ensure /dev is properly bound
-    print_info "Ensuring /dev is mounted in chroot..."
-    mount --bind /dev /mnt/dev || true
-    mount --bind /dev/pts /mnt/dev/pts || true
-    mount --bind /proc /mnt/proc || true
-    mount --bind /sys /mnt/sys || true
-    
-    print_info "Installing GRUB to: $TARGET_DISK"
-    
-    # Simple GRUB install without fancy options (works best in VMs)
-    arch-chroot /mnt grub-install --target=i386-pc --boot-directory=/boot "$TARGET_DISK"
-    
-    if [[ $? -ne 0 ]]; then
-        print_warning "First attempt failed, trying with --force..."
-        arch-chroot /mnt grub-install --target=i386-pc --force --boot-directory=/boot "$TARGET_DISK"
+    if [[ "$IS_VM" == "true" ]]; then
+        print_info "Using VM-optimized GRUB installation..."
+        
+        # VM-specific: Simple installation with minimal checks
+        arch-chroot /mnt grub-install --target=i386-pc --force --no-floppy "$TARGET_DISK"
         
         if [[ $? -ne 0 ]]; then
-            print_error "GRUB installation failed!"
-            print_info "Manual fix: After reboot into Arch ISO, run:"
-            print_info "  mount /dev/sdXN /mnt"
-            print_info "  arch-chroot /mnt"
-            print_info "  grub-install --target=i386-pc $TARGET_DISK"
-            print_info "  grub-mkconfig -o /boot/grub/grub.cfg"
-            log_error "Bootloader: GRUB BIOS installation failed"
-            
-            # Don't exit - let user try to fix manually
-            print_warning "Continuing anyway - you may need to fix GRUB manually"
+            print_warning "Trying alternative VM method..."
+            # Try without target specification (auto-detect)
+            arch-chroot /mnt bash -c "grub-install --force --no-floppy $TARGET_DISK || grub-install --force $TARGET_DISK"
+        fi
+        
+        if [[ $? -eq 0 ]]; then
+            print_success "GRUB installed for VM"
         else
-            print_success "GRUB installed with --force flag"
+            print_warning "GRUB install failed, but continuing (can fix manually)"
         fi
     else
-        print_success "GRUB installed for BIOS/Legacy to $TARGET_DISK"
+        print_info "Using standard GRUB installation..."
+        
+        # Physical hardware: Normal installation
+        arch-chroot /mnt grub-install --target=i386-pc --recheck "$TARGET_DISK"
+        
+        if [[ $? -ne 0 ]]; then
+            print_warning "Standard install failed, trying with --force..."
+            arch-chroot /mnt grub-install --target=i386-pc --force "$TARGET_DISK"
+            
+            if [[ $? -ne 0 ]]; then
+                print_error "GRUB installation failed!"
+                log_error "Bootloader: GRUB BIOS installation failed"
+                print_warning "Continuing - you may need to fix GRUB manually"
+            fi
+        else
+            print_success "GRUB installed for BIOS/Legacy to $TARGET_DISK"
+        fi
     fi
 fi
 
