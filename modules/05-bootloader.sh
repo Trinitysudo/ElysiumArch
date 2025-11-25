@@ -35,25 +35,46 @@ if [[ "$BOOT_MODE" == "UEFI" ]]; then
 else
     print_info "Installing GRUB for BIOS/Legacy mode..."
     
-    # Get the disk device (use DISK variable from module 03)
-    if [[ -z "$DISK" ]]; then
+    # Get the disk device (use DISK or INSTALL_DISK variable from module 03)
+    TARGET_DISK="${DISK:-$INSTALL_DISK}"
+    
+    if [[ -z "$TARGET_DISK" ]]; then
         print_error "DISK variable not set!"
         log_error "Bootloader: DISK variable missing"
         exit 1
     fi
     
-    print_info "Installing GRUB to: $DISK"
+    print_info "Target disk: $TARGET_DISK"
+    print_info "Creating device map for GRUB..."
     
-    # Install GRUB for BIOS
-    arch-chroot /mnt grub-install --target=i386-pc --recheck "$DISK"
+    # Create GRUB device map (fixes VM issues)
+    mkdir -p /mnt/boot/grub
+    echo "(hd0) $TARGET_DISK" > /mnt/boot/grub/device.map
+    cat /mnt/boot/grub/device.map
+    
+    # Run grub-mkdevicemap in chroot
+    arch-chroot /mnt grub-mkdevicemap
+    
+    print_info "Installing GRUB to: $TARGET_DISK"
+    
+    # Install GRUB for BIOS with explicit device map
+    arch-chroot /mnt grub-install --target=i386-pc --recheck --force "$TARGET_DISK"
     
     if [[ $? -ne 0 ]]; then
         print_error "Failed to install GRUB for BIOS"
-        log_error "Bootloader: GRUB BIOS installation failed"
-        exit 1
+        print_info "Trying alternative method..."
+        
+        # Alternative: Install without --recheck
+        arch-chroot /mnt grub-install --target=i386-pc --force "$TARGET_DISK"
+        
+        if [[ $? -ne 0 ]]; then
+            print_error "GRUB installation failed completely"
+            log_error "Bootloader: GRUB BIOS installation failed"
+            exit 1
+        fi
     fi
     
-    print_success "GRUB installed for BIOS/Legacy to $DISK"
+    print_success "GRUB installed for BIOS/Legacy to $TARGET_DISK"
 fi
 
 log_success "Bootloader: GRUB installed for $BOOT_MODE"

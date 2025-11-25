@@ -120,7 +120,8 @@ if [[ $CONFIRM_EXIT_CODE -ne 0 ]]; then
 fi
 echo "[DEBUG] User confirmed final confirmation, proceeding with disk wipe" | tee -a /tmp/elysium-debug.log
 
-# Export disk variable
+# Export disk variable (both names for compatibility)
+export DISK="$DISK"
 export INSTALL_DISK="$DISK"
 log_info "Disk: Selected disk $DISK for installation (swap: $USE_SWAP)"
 
