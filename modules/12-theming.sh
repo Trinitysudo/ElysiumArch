@@ -1,13 +1,17 @@
 #!/usr/bin/env bash
 #
-# Module 12: Theming - Blue/Black Hyprland Theme + Arch Wallpaper
-# Amazing blue/black theme for Hyprland
+# Module 12: Theming - DISABLED (ML4W Dotfiles handle everything)
+# ML4W dotfiles include complete theming: Waybar, Rofi, wallpapers, icons, etc.
 #
 
-print_info "Applying blue/black theme for Hyprland..."
+print_info "Skipping custom theming - ML4W Dotfiles handle all theming..."
+print_success "ML4W Dotfiles provide complete professional theme system"
+log_success "Theming: Using ML4W Dotfiles (no custom theming needed)"
 
-# JaKooLit includes his own icon theme, we don't need to install extra icons
+# Exit successfully - nothing to do here
+exit 0
 
+# OLD CODE DISABLED - ML4W handles everything
 # Download Arch Linux wallpapers
 print_info "Downloading Arch Linux wallpapers..."
 mkdir -p /mnt/home/$USERNAME/Pictures/wallpapers

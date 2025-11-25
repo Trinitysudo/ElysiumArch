@@ -45,15 +45,9 @@ else
 export XDG_SESSION_TYPE=wayland
 export XDG_SESSION_DESKTOP=Hyprland
 export XDG_CURRENT_DESKTOP=Hyprland
-export QT_QPA_PLATFORM=wayland
-export GDK_BACKEND=wayland
-export MOZ_ENABLE_WAYLAND=1
 
-# NVIDIA-specific environment variables (safe for all GPUs)
-export LIBVA_DRIVER_NAME=nvidia
-export GBM_BACKEND=nvidia-drm
-export __GLX_VENDOR_LIBRARY_NAME=nvidia
-export WLR_NO_HARDWARE_CURSORS=1
+# NVIDIA environment set globally in /etc/environment.d/10-nvidia-wayland.conf
+# This includes: LIBVA_DRIVER_NAME, GBM_BACKEND, __GLX_VENDOR_LIBRARY_NAME, etc.
 
 # Start Hyprland on TTY1 login
 if [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then

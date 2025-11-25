@@ -104,15 +104,31 @@ Section "OutputClass"
 EndSection
 NVIDIAEOF
         
-        # Wayland compatibility
+        # Wayland compatibility and RTX optimizations
         mkdir -p /mnt/etc/modprobe.d/
         cat > /mnt/etc/modprobe.d/nvidia.conf << 'EOF'
 options nvidia_drm modeset=1
 options nvidia NVreg_PreserveVideoMemoryAllocations=1
+options nvidia NVreg_EnableGpuFirmware=0
+EOF
+        
+        # Create environment file for NVIDIA Wayland support
+        mkdir -p /mnt/etc/environment.d/
+        cat > /mnt/etc/environment.d/10-nvidia-wayland.conf << 'EOF'
+# NVIDIA Wayland support for RTX GPUs
+LIBVA_DRIVER_NAME=nvidia
+GBM_BACKEND=nvidia-drm
+__GLX_VENDOR_LIBRARY_NAME=nvidia
+MOZ_ENABLE_WAYLAND=1
+QT_QPA_PLATFORM=wayland
+GDK_BACKEND=wayland,x11
+CLUTTER_BACKEND=wayland
+SDL_VIDEODRIVER=wayland
+XDG_SESSION_TYPE=wayland
 EOF
         
         arch-chroot /mnt systemctl enable nvidia-persistenced
-        print_success "NVIDIA configuration complete"
+        print_success "NVIDIA configuration complete (RTX optimized)"
         
         echo "NVIDIA_SUCCESS" >> /mnt/var/log/elysium/install_status
     else

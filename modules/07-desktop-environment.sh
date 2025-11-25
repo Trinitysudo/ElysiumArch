@@ -196,35 +196,39 @@ print_success "Bluetooth enabled"
 arch-chroot /mnt systemctl enable cups
 print_success "Printing service enabled"
 
-# Install best Hyprland config (JaKooLit's amazing setup)
-print_info "Installing JaKooLit's Hyprland dotfiles (AMAZING config)..."
+# Install ML4W Dotfiles (mylinuxforwork - PROFESSIONAL setup)
+print_info "Installing ML4W Dotfiles for Hyprland (BEST config available)..."
 arch-chroot /mnt sudo -u $USERNAME bash << 'HYPR_CONFIG_EOF'
 set -e
 cd ~
-mkdir -p ~/build
-cd ~/build
+mkdir -p ~/Downloads
+cd ~/Downloads
 
-# Clone JaKooLit Hyprland dotfiles
-if [ ! -d "Hyprland-Dots" ]; then
-    git clone --depth 1 https://github.com/JaKooLit/Hyprland-Dots || {
-        echo "Failed to clone Hyprland-Dots, using basic config"
+# Clone ML4W dotfiles (stable release 2.9.9.3)
+if [ ! -d "dotfiles" ]; then
+    git clone --depth 1 --branch 2.9.9.3 https://github.com/mylinuxforwork/dotfiles.git || {
+        echo "Failed to clone ML4W dotfiles, using basic config"
         exit 0
     }
 fi
 
-cd Hyprland-Dots
+cd dotfiles
 
-# Copy configs manually (safer than running install script)
-mkdir -p ~/.config
-cp -r config/* ~/.config/ 2>/dev/null || true
+# Run the installer (automated mode)
+chmod +x install.sh
+# Accept all defaults, use Kitty as terminal
+echo -e "\n\n\n\n\nkitty\n\n" | ./install.sh || {
+    echo "ML4W installer failed, will configure manually"
+    exit 0
+}
 
-echo "JaKooLit Hyprland dotfiles installed"
+echo "ML4W Dotfiles installed successfully"
 HYPR_CONFIG_EOF
 
 if [[ $? -eq 0 ]]; then
-    print_success "JaKooLit Hyprland dotfiles installed"
+    print_success "ML4W Dotfiles installed (mylinuxforwork)"
 else
-    print_warning "JaKooLit dotfiles failed, will use basic config"
+    print_warning "ML4W dotfiles failed, will use basic config"
 fi
 
 # Create user directories
