@@ -216,14 +216,23 @@ fi
 
 cd dotfiles
 
-# Run the installer (automated mode with proper responses)
+# Run the installer (automated mode)
 chmod +x install.sh
-# ML4W installer needs: default profile selection, terminal choice, package confirmations
-# Use 'yes' to auto-confirm all prompts, and provide kitty as terminal
-yes | ./install.sh -p default -t kitty 2>&1 || {
-    echo "ML4W installer failed, will configure manually"
-    exit 0
-}
+# Check if installer accepts flags, otherwise use interactive responses
+if ./install.sh --help 2>&1 | grep -q "\-p\|\-\-profile"; then
+    # Installer supports flags
+    yes | ./install.sh -p default -t kitty 2>&1 || {
+        echo "ML4W installer failed, will configure manually"
+        exit 0
+    }
+else
+    # Fallback to interactive responses
+    # Responses: profile selection, terminal (kitty), confirmations
+    printf "1\nkitty\ny\ny\ny\ny\ny\ny\n" | ./install.sh 2>&1 || {
+        echo "ML4W installer failed, will configure manually"
+        exit 0
+    }
+fi
 
 echo "ML4W Dotfiles installed successfully"
 HYPR_CONFIG_EOF
