@@ -26,15 +26,12 @@ arch-chroot /mnt pacman -S --noconfirm --needed \
     qt5ct \
     qt6ct \
     wl-clipboard \
-    glfw-wayland \
-    cairo \
-    pango \
     kitty \
     waybar \
     rofi-wayland \
     dunst \
     libnotify \
-    swaylock-effects \
+    swaylock \
     grim \
     slurp \
     brightnessctl \
