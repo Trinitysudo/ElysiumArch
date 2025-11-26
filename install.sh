@@ -161,12 +161,38 @@ EOF
     run_module "${SCRIPT_DIR}/modules/05-bootloader.sh"
     
     # Phase 3: Graphics & Desktop Environment
-    print_phase "PHASE 3: HYPRLAND (BARE MINIMUM)"
+    print_phase "PHASE 3: GRAPHICS & DESKTOP ENVIRONMENT"
     run_module "${SCRIPT_DIR}/modules/06-gpu-drivers.sh"
     run_module "${SCRIPT_DIR}/modules/07-desktop-environment.sh"
     
-    # Skip everything else - no apps, no configs, no themes
-    print_info "Skipping: Package managers, apps, utilities, theming, dev tools"
+    # Phase 4: Package Managers (always install - needed for AUR)
+    print_phase "PHASE 4: PACKAGE MANAGERS"
+    run_module "${SCRIPT_DIR}/modules/08-package-managers.sh"
+    
+    # Phase 5: Development Tools (skip in debug mode)
+    if [[ "$DEBUG_MODE" != "true" ]]; then
+        print_phase "PHASE 5: DEVELOPMENT ENVIRONMENT"
+        run_module "${SCRIPT_DIR}/modules/09-development-tools.sh"
+    else
+        print_warning "DEBUG MODE: Skipping development tools"
+    fi
+    
+    # Phase 6: Applications & Utilities (skip in debug mode)
+    if [[ "$DEBUG_MODE" != "true" ]]; then
+        print_phase "PHASE 6: APPLICATIONS & UTILITIES"
+        run_module "${SCRIPT_DIR}/modules/10-applications.sh"
+        run_module "${SCRIPT_DIR}/modules/11-utilities.sh"
+    else
+        print_warning "DEBUG MODE: Skipping applications and utilities"
+    fi
+    
+    # Phase 7: Theming (disabled - ML4W handles it)
+    # print_phase "PHASE 7: THEMING & CUSTOMIZATION"
+    # run_module "${SCRIPT_DIR}/modules/12-theming.sh"
+    
+    # Phase 8: Post-Installation
+    print_phase "PHASE 8: POST-INSTALLATION CONFIGURATION"
+    run_module "${SCRIPT_DIR}/modules/14-post-install.sh"
     
     # Installation complete
     print_success "\n=========================================="
