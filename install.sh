@@ -161,34 +161,12 @@ EOF
     run_module "${SCRIPT_DIR}/modules/05-bootloader.sh"
     
     # Phase 3: Graphics & Desktop Environment
-    print_phase "PHASE 3: GRAPHICS & DESKTOP ENVIRONMENT"
+    print_phase "PHASE 3: HYPRLAND (BARE MINIMUM)"
     run_module "${SCRIPT_DIR}/modules/06-gpu-drivers.sh"
     run_module "${SCRIPT_DIR}/modules/07-desktop-environment.sh"
     
-    # Phase 4: Package Managers
-    print_phase "PHASE 4: PACKAGE MANAGERS"
-    run_module "${SCRIPT_DIR}/modules/08-package-managers.sh"
-    
-    # Phase 5: Development Tools
-    print_phase "PHASE 5: DEVELOPMENT ENVIRONMENT"
-    run_module "${SCRIPT_DIR}/modules/09-development-tools.sh"
-    
-    # Phase 6: Applications & Utilities
-    print_phase "PHASE 6: APPLICATIONS & UTILITIES"
-    run_module "${SCRIPT_DIR}/modules/10-applications.sh"
-    run_module "${SCRIPT_DIR}/modules/11-utilities.sh"
-    
-    # Phase 7: Theming & Customization
-    print_phase "PHASE 7: THEMING & CUSTOMIZATION"
-    run_module "${SCRIPT_DIR}/modules/12-theming.sh"
-    
-    # Phase 8: Security Configuration
-    print_phase "PHASE 8: SECURITY CONFIGURATION"
-    run_module "${SCRIPT_DIR}/modules/15-security.sh"
-    
-    # Phase 9: Post-Installation
-    print_phase "PHASE 9: POST-INSTALLATION CONFIGURATION"
-    run_module "${SCRIPT_DIR}/modules/14-post-install.sh"
+    # Skip everything else - no apps, no configs, no themes
+    print_info "Skipping: Package managers, apps, utilities, theming, dev tools"
     
     # Installation complete
     print_success "\n=========================================="
