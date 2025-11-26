@@ -88,6 +88,24 @@ main() {
     log_info "ElysiumArch Installation Started at $(date)"
     log_info "=========================================="
     
+    # DEBUG MODE - VERY FIRST PROMPT (before checkpoints)
+    export DEBUG_MODE=false
+    echo ""
+    print_info "=========================================="
+    print_info "  ⚡ DEBUG MODE"
+    print_info "=========================================="
+    echo ""
+    echo "Skip apps/utilities/dev tools for faster testing?"
+    echo "(Hyprland + ML4W dotfiles will still install)"
+    echo ""
+    if confirm "Enable debug mode?"; then
+        export DEBUG_MODE=true
+        print_warning "🐛 DEBUG MODE ENABLED - Apps will be skipped!"
+    else
+        print_success "✅ Full installation mode"
+    fi
+    echo ""
+    
     # Check for existing installation
     LAST_CHECKPOINT=$(load_checkpoint)
     if [[ "$LAST_CHECKPOINT" != "none" ]]; then
@@ -98,25 +116,6 @@ main() {
             print_info "Starting fresh installation..."
             clear_checkpoints
         fi
-    fi
-    
-    # Debug mode option - FIRST PROMPT (before everything else)
-    export DEBUG_MODE=false
-    if [[ "$LAST_CHECKPOINT" == "none" ]]; then
-        echo ""
-        print_info "=========================================="
-        print_info "  Debug Mode"
-        print_info "=========================================="
-        echo ""
-        echo "Skip apps/utilities/dev tools for faster testing?"
-        echo ""
-        if confirm "Enable debug mode?"; then
-            export DEBUG_MODE=true
-            print_warning "DEBUG MODE ENABLED - Apps will be skipped!"
-        else
-            print_success "Full installation mode"
-        fi
-        echo ""
     fi
     
     # Pre-installation checks
